@@ -13,12 +13,14 @@ import {
 import RNFS from 'react-native-fs';
 import {
   Agent,
+  AutoAcceptCredential,
   ConnectionEventTypes,
   ConnectionInvitationMessage,
   ConnectionRecord,
   ConnectionStateChangedEvent,
   ConsoleLogger,
   CredentialEventTypes,
+  CredentialPreviewAttribute,
   CredentialRecord,
   CredentialState,
   CredentialStateChangedEvent,
@@ -32,7 +34,10 @@ import {agentDependencies} from '@aries-framework/react-native';
 import axios from 'axios';
 
 import QRCodeScanner from './QRCodeScanner';
-import {AgentEventTypes} from '@aries-framework/core/build/agent/Events';
+import {
+  AgentEventTypes,
+  AgentMessageReceivedEvent,
+} from '@aries-framework/core/build/agent/Events';
 import Dts_Genesis from '../Assets/Dts_Genesis';
 
 // const MEDIATOR_URL = 'https://63a0c82ee8fe.ngrok.io';
@@ -41,7 +46,7 @@ import Dts_Genesis from '../Assets/Dts_Genesis';
 //Head to https://mediator.animo.id/invitation then copy the resulting code
 //Head to https://indicio-tech.github.io/mediator/ then copy the resulting code
 const MEDIATOR_INVITE =
-  'https://mediator.animo.id/invitation?c_i=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wL2ludml0YXRpb24iLCJAaWQiOiJkZTE5MDZlNS0xNDJiLTQxNDktYTg5Ny1kODVkMGY3ODAxZjMiLCJsYWJlbCI6IkFuaW1vIE1lZGlhdG9yIiwicmVjaXBpZW50S2V5cyI6WyJHc3g3ZW9nVGNlbWR2TDZBajU5NVFDM1NEdGdINFdwRjZ0N2ExbzN4Q2JGZCJdLCJzZXJ2aWNlRW5kcG9pbnQiOiJodHRwczovL21lZGlhdG9yLmFuaW1vLmlkIiwicm91dGluZ0tleXMiOltdfQ';
+  'https://mediator.animo.id/invitation?c_i=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wL2ludml0YXRpb24iLCJAaWQiOiJlNjdmZDgyYS05NWVhLTQ4ZjctYmQ0OC0wNmE2ZDdjNjkxYjciLCJsYWJlbCI6IkFuaW1vIE1lZGlhdG9yIiwicmVjaXBpZW50S2V5cyI6WyI1QWZQYVhuSkVmd2JoZlI2cTRVVjNEVDZxQ3ZnUHNqWUdQcENzYTdxd1E5WiJdLCJzZXJ2aWNlRW5kcG9pbnQiOiJodHRwczovL21lZGlhdG9yLmFuaW1vLmlkIiwicm91dGluZ0tleXMiOltdfQ';
 const GENESIS_URL_INDICIO =
   'https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis';
 const GENESIS_URL_SOVRIN =
@@ -111,7 +116,7 @@ const handleConnectionStateChange = (
   console.log(
     `>> Connection event for: ${event.payload.connectionRecord.id}, previous state -> ${event.payload.previousState} new state: ${event.payload.connectionRecord.state}`,
   );
-  console.log(`>> Connection OBJECT DUMP>>: ${event}`);
+  console.log(`>> Connection OBJECT DUMP>>: ${JSON.stringify(event)}`);
 };
 
 const handleCredentialStateChange = async (
@@ -121,21 +126,55 @@ const handleCredentialStateChange = async (
   console.log(
     `>> Credential state changed: ${event.payload.credentialRecord.id}, previous state -> ${event.payload.previousState} new state: ${event.payload.credentialRecord.state}`,
   );
-  console.log(`>> Credential OBJECT DUMP>>: ${event}`);
+
+  console.log(`>===========================================>`);
+  console.log(`>> Credential OBJECT DUMP>>: ${JSON.stringify(event)}`);
   console.log(`>===========================================>`);
   if (event.payload.credentialRecord.state === 'offer-received') {
     console.log(`>> Recieved offer, should display credentail to user`);
-    // console.log(`>> AUTO ACCEPTING OFFER`);
-    agent.credentials.acceptOffer(event.payload.credentialRecord.id);
+    console.log(`>> AUTO ACCEPTING OFFER`);
+
+    //TODO: Move some where else
+    const previewAttributes: CredentialPreviewAttribute[] =
+      event.payload.credentialRecord.offerMessage?.credentialPreview
+        .attributes || [];
+    var counter = 0;
+    var message = '>> Offer Recieved <<\n';
+    for (const credAttribute of previewAttributes) {
+      //Just not to bloat the alert with all values, limit to 5 only for demo purpose
+      counter += 1;
+      if (counter < 5) {
+        message += `${credAttribute.name}: ${credAttribute.value}\n`;
+      }
+
+      // attributes[previewAttributes[index].name] =
+      //   previewAttributes[index].value;
+    }
+
+    Alert.alert('Attention!', message, [
+      {
+        text: 'Accept',
+        onPress: () => {
+          agent.credentials.acceptOffer(event.payload.credentialRecord.id);
+        },
+      },
+      {
+        text: 'Reject',
+        onPress: () => {
+          console.log('User rejected offer');
+        },
+      },
+    ]);
   } else if (event.payload.credentialRecord.state === CredentialState.Done) {
-    Alert.alert('ALL DONE - CREDENTAIL ACCEPTED');
+    //Currently not being triggered
+    Alert.alert('Credentail Saved');
+  } else if (event.payload.credentialRecord.state === 'credential-received') {
+    //No need for that step
+    console.log('>> Recieved Credentail');
+    // await agent.credentials.acceptCredential(event.payload.credentialRecord.id); //no need for that if you use
+    // console.log('ALL DONE - CREDENTAIL ACCEPTED');
+    // Alert.alert('ALL DONE - CREDENTAIL ACCEPTED');
   }
-  // } else if (event.payload.credentialRecord.state === 'credential-received') {
-  //   console.log('>> Recieved Credentail');
-  //   await agent.credentials.acceptCredential(event.payload.credentialRecord.id);
-  //   console.log('ALL DONE - CREDENTAIL ACCEPTED');
-  //   Alert.alert('ALL DONE - CREDENTAIL ACCEPTED');
-  // }
 };
 
 /*  INIT FUNCTIONS */
@@ -148,6 +187,37 @@ const getAllConnections = async (agent: Agent) => {
 //Get all credentails
 const getAllCredentials = async (agent: Agent) => {
   const credentials: CredentialRecord[] = await agent.credentials.getAll();
+
+  if (credentials?.length <= 0) {
+    Alert.alert('No credentails found');
+    return false;
+  }
+
+  var message = `>> Total Credentaols:${credentials?.length}<<\n`;
+  var message = `>> Showing last credential<<\n`;
+
+  //Will take only first credential
+  var lastCredentailRecord = credentials[credentials.length - 1];
+
+  //TODO: Move some where else
+  const previewAttributes: CredentialPreviewAttribute[] =
+    lastCredentailRecord.offerMessage?.credentialPreview.attributes || [];
+
+  var counter = 0;
+
+  for (const credAttribute of previewAttributes) {
+    //Just not to bloat the alert with all values, limit to 5 only for demo purpose
+    counter += 1;
+    if (counter < 5) {
+      message += `${credAttribute.name}: ${credAttribute.value}\n`;
+    }
+
+    // attributes[previewAttributes[index].name] =
+    //   previewAttributes[index].value;
+  }
+
+  Alert.alert(message);
+
   console.log(`[] All Credentials ${JSON.stringify(credentials)}`);
 };
 
@@ -161,11 +231,12 @@ async function initAgent(setAgentFunc): Promise<string> {
   if (GENESIS_URL === GENESIS_URL_DTS) {
     genesisString = Dts_Genesis;
   } else {
-    const genesis = await downloadGenesis(GENESIS_URL_INDICIO);
+    const genesis = await downloadGenesis(GENESIS_URL);
     if (!genesis) {
+      Alert.alert('Error downloading genesis file from:' + GENESIS_URL);
       return 'Error download genesis';
     }
-    console.log('Genesis downloaded ..');
+    console.log(`Genesis downloaded:${genesis}`);
     console.log('Saving genesis to file ..');
     genesisString = genesis;
   }
@@ -191,6 +262,7 @@ async function initAgent(setAgentFunc): Promise<string> {
         key: `testkey023048230482304230424-${timeNow.getTime()}`,
       },
       autoAcceptConnections: true,
+      autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       poolName: `test-194-${timeNow.getTime()}`,
       genesisPath,
       logger: new ConsoleLogger(LogLevel.debug),
@@ -205,6 +277,8 @@ async function initAgent(setAgentFunc): Promise<string> {
     await agent.initialize();
     console.log('Initialized agent!');
 
+    Alert.alert('Agent Init. Success!');
+
     const handleBasicMessageReceive = event => {
       console.log(
         `New Basic Message with verkey ${event.verkey}:`,
@@ -212,7 +286,7 @@ async function initAgent(setAgentFunc): Promise<string> {
       );
     };
 
-    agent.events.on(
+    agent.events.on<AgentMessageReceivedEvent>(
       AgentEventTypes.AgentMessageReceived,
       handleBasicMessageReceive,
     );
