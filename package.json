@@ -10,6 +10,9 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
+    "@aries-framework/core": "^0.1.0-alpha.258",
+    "@aries-framework/react-native": "^0.1.0-alpha.258",
+    "indy-sdk-react-native": "^0.1.14",
     "react": "17.0.2",
     "react-native": "0.65.1"
   },
