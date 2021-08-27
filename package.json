@@ -12,17 +12,24 @@
   "dependencies": {
     "@aries-framework/core": "^0.1.0-alpha.258",
     "@aries-framework/react-native": "^0.1.0-alpha.258",
+    "@azure/core-asynciterator-polyfill": "^1.0.0",
+    "axios": "^0.21.1",
     "indy-sdk-react-native": "^0.1.14",
     "react": "17.0.2",
-    "react-native": "0.65.1"
+    "react-native": "0.65.1",
+    "react-native-camera": "^4.1.1",
+    "react-native-fs": "^2.18.0",
+    "react-native-get-random-values": "^1.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@types/indy-sdk": "^1.16.7",
     "@types/jest": "^26.0.23",
     "@types/react-native": "^0.64.5",
     "@types/react-test-renderer": "^16.9.2",
+    "@types/rn-indy-sdk": "npm:@types/indy-sdk",
     "babel-jest": "^26.6.3",
     "eslint": "^7.14.0",
     "jest": "^26.6.3",
