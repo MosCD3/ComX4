@@ -14,6 +14,7 @@ import RNFS from 'react-native-fs';
 import {
   Agent,
   AutoAcceptCredential,
+  AutoAcceptProof,
   ConnectionEventTypes,
   ConnectionInvitationMessage,
   ConnectionRecord,
@@ -27,6 +28,9 @@ import {
   HttpOutboundTransport,
   InitConfig,
   LogLevel,
+  ProofEventTypes,
+  ProofState,
+  ProofStateChangedEvent,
 } from '@aries-framework/core';
 
 import {agentDependencies} from '@aries-framework/react-native';
@@ -109,6 +113,8 @@ const handleQRCodeScanned = async (agent: Agent, code: string) => {
   console.log(`Recieve invitation connection record:${connectionRecord}`);
 };
 
+/**   EVENT HANDLERS **/
+/**********************/
 const handleConnectionStateChange = (
   agent: Agent,
   event: ConnectionStateChangedEvent,
@@ -174,6 +180,32 @@ const handleCredentialStateChange = async (
     // await agent.credentials.acceptCredential(event.payload.credentialRecord.id); //no need for that if you use
     // console.log('ALL DONE - CREDENTAIL ACCEPTED');
     // Alert.alert('ALL DONE - CREDENTAIL ACCEPTED');
+  }
+};
+
+const handleProofStateChange = async (
+  agent: Agent,
+  event: ProofStateChangedEvent,
+) => {
+  console.log(
+    `>> Proof state changed: ${event.payload.proofRecord.id}, previous state -> ${event.payload.previousState} new state: ${event.payload.proofRecord.state}`,
+  );
+  if (event.payload.proofRecord.state === ProofState.RequestReceived) {
+    const proofRequest =
+      event.payload.proofRecord.requestMessage?.indyProofRequest;
+    const presentationPreview =
+      event.payload.proofRecord.proposalMessage?.presentationProposal;
+    const retrievedCredentials =
+      await agent.proofs.getRequestedCredentialsForProofRequest(
+        proofRequest!,
+        presentationPreview,
+      );
+    const requestedCredentials =
+      agent.proofs.autoSelectCredentialsForProofRequest(retrievedCredentials);
+    await agent.proofs.acceptRequest(
+      event.payload.proofRecord.id,
+      requestedCredentials,
+    );
   }
 };
 
@@ -263,6 +295,7 @@ async function initAgent(setAgentFunc): Promise<string> {
       },
       autoAcceptConnections: true,
       autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
+      autoAcceptProofs: AutoAcceptProof.ContentApproved,
       poolName: `test-194-${timeNow.getTime()}`,
       genesisPath,
       logger: new ConsoleLogger(LogLevel.debug),
@@ -302,6 +335,13 @@ async function initAgent(setAgentFunc): Promise<string> {
       ConnectionEventTypes.ConnectionStateChanged,
       event => {
         handleConnectionStateChange(agent, event);
+      },
+    );
+
+    agent.events.on<ProofStateChangedEvent>(
+      ProofEventTypes.ProofStateChanged,
+      event => {
+        handleProofStateChange(agent, event);
       },
     );
 
