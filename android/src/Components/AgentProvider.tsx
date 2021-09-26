@@ -49,8 +49,9 @@ import Dts_Genesis from '../Assets/Dts_Genesis';
 //Mediator URL
 //Head to https://mediator.animo.id/invitation then copy the resulting code
 //Head to https://indicio-tech.github.io/mediator/ then copy the resulting code
-const MEDIATOR_INVITE =
-  'https://mediator.animo.id/invitation?c_i=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wL2ludml0YXRpb24iLCJAaWQiOiJlNjdmZDgyYS05NWVhLTQ4ZjctYmQ0OC0wNmE2ZDdjNjkxYjciLCJsYWJlbCI6IkFuaW1vIE1lZGlhdG9yIiwicmVjaXBpZW50S2V5cyI6WyI1QWZQYVhuSkVmd2JoZlI2cTRVVjNEVDZxQ3ZnUHNqWUdQcENzYTdxd1E5WiJdLCJzZXJ2aWNlRW5kcG9pbnQiOiJodHRwczovL21lZGlhdG9yLmFuaW1vLmlkIiwicm91dGluZ0tleXMiOltdfQ';
+var MEDIATOR_URL = 'https://mediator.animo.id/invitation';
+var MEDIATOR_INVITE =
+  'https://mediator.animo.id/invitation?c_i=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wL2ludml0YXRpb24iLCJAaWQiOiJkZjQzNmE3MS1hMzNhLTQ0ZjgtOGE2Zi0yODg5YWI1ODc1NjQiLCJsYWJlbCI6IkFuaW1vIE1lZGlhdG9yIiwicmVjaXBpZW50S2V5cyI6WyJGaDFmVXl3ZThCSm9BUEdKdEZ3Rk1Tb3hqUnhDN28yUndIcUZ4WERUcGlaZSJdLCJzZXJ2aWNlRW5kcG9pbnQiOiJodHRwczovL21lZGlhdG9yLmFuaW1vLmlkIiwicm91dGluZ0tleXMiOltdfQ';
 const GENESIS_URL_INDICIO =
   'https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis';
 const GENESIS_URL_SOVRIN =
@@ -62,6 +63,8 @@ const GENESIS_URL_SOVRIN_LIVE =
 const GENESIS_URL_SOVRIN_BUILDER =
   'https://github.com/sovrin-foundation/sovrin/blob/master/sovrin/pool_transactions_builder_genesis';
 
+//Settings
+const fetchMediatorInviteFromUrl = true;
 const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
 
 //Just change here
@@ -69,6 +72,17 @@ const GENESIS_URL = GENESIS_URL_DTS;
 
 //just a helper function to simulate call
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+//Download genesis file
+async function getMediatorInvite(url: string) {
+  try {
+    const response = await axios.get(url);
+    return response.data;
+  } catch (e) {
+    console.log('EXCEPTION> downloadGenesis:', e);
+    return null;
+  }
+}
 
 //Download genesis file
 async function downloadGenesis(genesisUrl: string) {
@@ -257,6 +271,12 @@ const getAllCredentials = async (agent: Agent) => {
 Main Function Init Agent
 */
 async function initAgent(setAgentFunc): Promise<string> {
+  console.log('Getting mediator url');
+  if (fetchMediatorInviteFromUrl) {
+    MEDIATOR_INVITE = await getMediatorInvite(MEDIATOR_URL);
+    console.log('Mediator invitation:' + MEDIATOR_INVITE);
+  }
+  return '';
   console.log('Downloading genesis');
 
   var genesisString = '';
@@ -273,12 +293,16 @@ async function initAgent(setAgentFunc): Promise<string> {
     genesisString = genesis;
   }
 
+  //Use that only if you want to download and save genesis to a local file once,
+  //or maybe store genesis string in a local db or prefs and dont bother with storage permissions
+  /*
   const genesisPath: string = await storeGenesis(genesisString, 'genesis.txn');
 
   if (!genesisPath) {
     return 'Error saving genesis';
   }
-  console.log('Saved to:', genesisPath);
+    console.log('Saved to:', genesisPath);
+  */
 
   console.log('initing agent');
   //   await sleep(2000);
@@ -297,7 +321,8 @@ async function initAgent(setAgentFunc): Promise<string> {
       autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       autoAcceptProofs: AutoAcceptProof.ContentApproved,
       poolName: `test-194-${timeNow.getTime()}`,
-      genesisPath,
+      genesisTransactions: genesisString,
+      // genesisPath: genesisPath,
       logger: new ConsoleLogger(LogLevel.debug),
     };
 
