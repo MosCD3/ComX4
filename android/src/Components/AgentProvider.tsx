@@ -276,7 +276,7 @@ async function initAgent(setAgentFunc): Promise<string> {
     MEDIATOR_INVITE = await getMediatorInvite(MEDIATOR_URL);
     console.log('Mediator invitation:' + MEDIATOR_INVITE);
   }
-  return '';
+
   console.log('Downloading genesis');
 
   var genesisString = '';
