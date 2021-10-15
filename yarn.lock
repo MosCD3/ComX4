@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@aries-framework/core@0.1.0-alpha.276+74f3d0a", "@aries-framework/core@^0.1.0-alpha.273":
-  version "0.1.0-alpha.276"
-  resolved "https://registry.yarnpkg.com/@aries-framework/core/-/core-0.1.0-alpha.276.tgz#5012691bf5a278c01177a2f2676be5e3ff827691"
-  integrity sha512-pmYuOwWQTvfLZfVazFi7Vtd9KOPPNhaNKCMpYD+9VXleoVviF0ERVzs5ScPWVS0CthKN0digFvQeTmZ6Q4tOWg==
+"@aries-framework/core@0.1.0-alpha.285+e24eafd", "@aries-framework/core@^0.1.0-alpha.285":
+  version "0.1.0-alpha.285"
+  resolved "https://registry.yarnpkg.com/@aries-framework/core/-/core-0.1.0-alpha.285.tgz#6a00821e73ba6ac8a32e964c3bf0f4bd0181e1f4"
+  integrity sha512-MHPE71BG++43hPY3vTnoYlVtEhAv/NDloR1ZwE69UEZZNblTC5VldDoJSYLNmU5BDGeJle2ndCyfigxz4/pLmQ==
   dependencies:
     "@types/indy-sdk" "^1.16.6"
     "@types/node-fetch" "^2.5.10"
@@ -28,12 +28,12 @@
     tsyringe "^4.5.0"
     uuid "^8.3.2"
 
-"@aries-framework/react-native@^0.1.0-alpha.273":
-  version "0.1.0-alpha.276"
-  resolved "https://registry.yarnpkg.com/@aries-framework/react-native/-/react-native-0.1.0-alpha.276.tgz#57d83277857f9a85ec385b997b72dda85067ed3c"
-  integrity sha512-UFvIBK5jxPoGjfhn22g23e3eKaAVX7PNUlCH5Sl3UiMfY0PN2TgIwMWkECdscyqyLvlkdKAZf/N+oOgXIi+TcA==
+"@aries-framework/react-native@^0.1.0-alpha.285":
+  version "0.1.0-alpha.285"
+  resolved "https://registry.yarnpkg.com/@aries-framework/react-native/-/react-native-0.1.0-alpha.285.tgz#ee4fb64e7e5891976db726aa3374148faaddf813"
+  integrity sha512-Cx3t4BG7SchqbINw2eB+XUI1VCsp1zOFfDn8V6Bt43BaKfdp+m3P9z4nvdiX8yA3b3tla9W2dSVNollCaB2g6g==
   dependencies:
-    "@aries-framework/core" "0.1.0-alpha.276+74f3d0a"
+    "@aries-framework/core" "0.1.0-alpha.285+e24eafd"
     "@azure/core-asynciterator-polyfill" "^1.0.0"
     events "^3.3.0"
 

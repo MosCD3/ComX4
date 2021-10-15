@@ -15,6 +15,8 @@ import {
   Agent,
   AutoAcceptCredential,
   AutoAcceptProof,
+  BasicMessageEventTypes,
+  BasicMessageReceivedEvent,
   ConnectionEventTypes,
   ConnectionInvitationMessage,
   ConnectionRecord,
@@ -40,6 +42,7 @@ import axios from 'axios';
 import QRCodeScanner from './QRCodeScanner';
 import {
   AgentEventTypes,
+  AgentMessageProcessedEvent,
   AgentMessageReceivedEvent,
 } from '@aries-framework/core/build/agent/Events';
 import Dts_Genesis from '../Assets/Dts_Genesis';
@@ -51,7 +54,7 @@ import Dts_Genesis from '../Assets/Dts_Genesis';
 //Head to https://indicio-tech.github.io/mediator/ then copy the resulting code
 var MEDIATOR_URL = 'https://mediator.animo.id/invitation';
 var MEDIATOR_INVITE =
-  'https://mediator.animo.id/invitation?c_i=eyJAdHlwZSI6Imh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wL2ludml0YXRpb24iLCJAaWQiOiJkZjQzNmE3MS1hMzNhLTQ0ZjgtOGE2Zi0yODg5YWI1ODc1NjQiLCJsYWJlbCI6IkFuaW1vIE1lZGlhdG9yIiwicmVjaXBpZW50S2V5cyI6WyJGaDFmVXl3ZThCSm9BUEdKdEZ3Rk1Tb3hqUnhDN28yUndIcUZ4WERUcGlaZSJdLCJzZXJ2aWNlRW5kcG9pbnQiOiJodHRwczovL21lZGlhdG9yLmFuaW1vLmlkIiwicm91dGluZ0tleXMiOltdfQ';
+  'http://mediator3.test.indiciotech.io:3000?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiYjE5YTM2ZjctZjhiZi00Mjg2LTg4ZjktODM4ZTIyZDI0ZjQxIiwgInJlY2lwaWVudEtleXMiOiBbIkU5VlhKY1pzaGlYcXFMRXd6R3RtUEpCUnBtMjl4dmJMYVpuWktTU0ZOdkE2Il0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cDovL21lZGlhdG9yMy50ZXN0LmluZGljaW90ZWNoLmlvOjMwMDAiLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==';
 const GENESIS_URL_INDICIO =
   'https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis';
 const GENESIS_URL_SOVRIN =
@@ -64,8 +67,13 @@ const GENESIS_URL_SOVRIN_BUILDER =
   'https://github.com/sovrin-foundation/sovrin/blob/master/sovrin/pool_transactions_builder_genesis';
 
 //Settings
-const fetchMediatorInviteFromUrl = true;
+const fetchMediatorInviteFromUrl = false;
+const randomiseWalletKeys = true;
 const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
+const walletLabel = 'ComX';
+const walletID = 'comx4-s';
+const walletKey = 'comx4-walletkey10';
+const poolName = 'comx4-pool';
 
 //Just change here
 const GENESIS_URL = GENESIS_URL_DTS;
@@ -129,6 +137,29 @@ const handleQRCodeScanned = async (agent: Agent, code: string) => {
 
 /**   EVENT HANDLERS **/
 /**********************/
+const handleProcessedMessageReceive = (
+  agent: Agent,
+  event: AgentMessageProcessedEvent,
+) => {
+  //This is to silence mediator polling messages
+  // if (event.payload.connection?.theirLabel?.includes('Animo Mediator')) return;
+  console.log(
+    `>> Processed Message From:${
+      event.payload.connection?.theirLabel
+    } \nRecieved OBJECT DUMP>>: ${JSON.stringify(event)}`,
+  );
+};
+
+const handleBasicMessageReceive = (
+  agent: Agent,
+  event: BasicMessageReceivedEvent,
+) => {
+  Alert.alert(`message:${event.payload.message.content}`);
+
+  console.log(
+    `>> Basic Message Recieved OBJECT DUMP>>: ${JSON.stringify(event)}`,
+  );
+};
 const handleConnectionStateChange = (
   agent: Agent,
   event: ConnectionStateChangedEvent,
@@ -309,18 +340,33 @@ async function initAgent(setAgentFunc): Promise<string> {
   //   console.log('agent init done');
   var timeNow = new Date();
 
+  //Randomise wallet params each time, some mediators will not work on re-starting test with same pool id and other wallet keys
+
+  //   const randomiseWalletKeys = false;
+  // const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
+  // const walletLabel = 'ComX';
+  // const walletID = 'comx4-s';
+  // const walletKey = 'comx4-walletkey10';
+  // const poolName = 'comx4-pool';
+
   try {
     const agentConfig: InitConfig = {
-      label: `my-agent9-${timeNow.getTime()}`,
+      label: randomiseWalletKeys
+        ? `${walletLabel}${timeNow.getTime()}`
+        : walletLabel,
       mediatorConnectionsInvite: MEDIATOR_INVITE,
       walletConfig: {
-        id: `walletId11-${timeNow.getTime()}`,
-        key: `testkey023048230482304230424-${timeNow.getTime()}`,
+        id: randomiseWalletKeys ? `${walletID}${timeNow.getTime()}` : walletID,
+        key: randomiseWalletKeys
+          ? `${walletKey}${timeNow.getTime()}`
+          : walletKey,
       },
       autoAcceptConnections: true,
       autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       autoAcceptProofs: AutoAcceptProof.ContentApproved,
-      poolName: `test-194-${timeNow.getTime()}`,
+      poolName: randomiseWalletKeys
+        ? `${poolName}${timeNow.getTime()}`
+        : poolName,
       genesisTransactions: genesisString,
       // genesisPath: genesisPath,
       logger: new ConsoleLogger(LogLevel.debug),
@@ -337,16 +383,30 @@ async function initAgent(setAgentFunc): Promise<string> {
 
     Alert.alert('Agent Init. Success!');
 
-    const handleBasicMessageReceive = event => {
-      console.log(
-        `New Basic Message with verkey ${event.verkey}:`,
-        event.message,
-      );
-    };
+    // const handleBasicMessageReceive = event => {
+    //   console.log(
+    //     `New Basic Message with verkey ${event.verkey}:`,
+    //     event.message,
+    //   );
+    // };
 
-    agent.events.on<AgentMessageReceivedEvent>(
-      AgentEventTypes.AgentMessageReceived,
-      handleBasicMessageReceive,
+    // agent.events.on<AgentMessageReceivedEvent>(
+    //   AgentEventTypes.AgentMessageReceived,
+    //   handleBasicMessageReceive,
+    // );
+
+    agent.events.on<BasicMessageReceivedEvent>(
+      BasicMessageEventTypes.BasicMessageReceived,
+      event => {
+        handleBasicMessageReceive(agent, event);
+      },
+    );
+
+    agent.events.on<AgentMessageProcessedEvent>(
+      AgentEventTypes.AgentMessageProcessed,
+      event => {
+        handleProcessedMessageReceive(agent, event);
+      },
     );
 
     agent.events.on<CredentialStateChangedEvent>(
