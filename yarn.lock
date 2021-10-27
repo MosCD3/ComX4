@@ -2,11 +2,12 @@
 # yarn lockfile v1
 
 
-"@aries-framework/core@0.1.0-alpha.285+e24eafd", "@aries-framework/core@^0.1.0-alpha.285":
-  version "0.1.0-alpha.285"
-  resolved "https://registry.yarnpkg.com/@aries-framework/core/-/core-0.1.0-alpha.285.tgz#6a00821e73ba6ac8a32e964c3bf0f4bd0181e1f4"
-  integrity sha512-MHPE71BG++43hPY3vTnoYlVtEhAv/NDloR1ZwE69UEZZNblTC5VldDoJSYLNmU5BDGeJle2ndCyfigxz4/pLmQ==
+"@aries-framework/core@0.1.0-alpha.287+47149bc", "@aries-framework/core@^0.1.0-alpha.287":
+  version "0.1.0-alpha.287"
+  resolved "https://registry.yarnpkg.com/@aries-framework/core/-/core-0.1.0-alpha.287.tgz#e1465670a63e74963819ad787d93a2c65e97a6a2"
+  integrity sha512-tHJd2ViKH3dECQ8jUy0w9Dl6V07rbs6LA5TA0hev0rlI6Pidus4s0ZJZC8lnMrSiF13ckaIU0EdDKEMcOSFuLw==
   dependencies:
+    "@multiformats/base-x" "^4.0.1"
     "@types/indy-sdk" "^1.16.6"
     "@types/node-fetch" "^2.5.10"
     "@types/ws" "^7.4.4"
@@ -17,6 +18,7 @@
     class-transformer "^0.4.0"
     class-validator "^0.13.1"
     js-sha256 "^0.9.0"
+    lru_map "^0.4.1"
     luxon "^1.27.0"
     make-error "^1.3.6"
     multibase "^4.0.4"
@@ -28,12 +30,12 @@
     tsyringe "^4.5.0"
     uuid "^8.3.2"
 
-"@aries-framework/react-native@^0.1.0-alpha.285":
-  version "0.1.0-alpha.285"
-  resolved "https://registry.yarnpkg.com/@aries-framework/react-native/-/react-native-0.1.0-alpha.285.tgz#ee4fb64e7e5891976db726aa3374148faaddf813"
-  integrity sha512-Cx3t4BG7SchqbINw2eB+XUI1VCsp1zOFfDn8V6Bt43BaKfdp+m3P9z4nvdiX8yA3b3tla9W2dSVNollCaB2g6g==
+"@aries-framework/react-native@^0.1.0-alpha.287":
+  version "0.1.0-alpha.287"
+  resolved "https://registry.yarnpkg.com/@aries-framework/react-native/-/react-native-0.1.0-alpha.287.tgz#65ce05c6aa4f1d75bf89d9874704c65585d3cc11"
+  integrity sha512-BO2f3G4aKLPD5l+v6npkAZANmk57CEFVl4ixXNcsXgzaX4FwcxF2WDIZj+ecqwroL44phqydzINBYr2eMo7MpQ==
   dependencies:
-    "@aries-framework/core" "0.1.0-alpha.285+e24eafd"
+    "@aries-framework/core" "0.1.0-alpha.287+47149bc"
     "@azure/core-asynciterator-polyfill" "^1.0.0"
     events "^3.3.0"
 
@@ -4477,6 +4479,11 @@ lru-cache@^6.0.0:
   integrity sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==
   dependencies:
     yallist "^4.0.0"
+
+lru_map@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/lru_map/-/lru_map-0.4.1.tgz#f7b4046283c79fb7370c36f8fca6aee4324b0a98"
+  integrity sha512-I+lBvqMMFfqaV8CJCISjI3wbjmwVu/VyOoU7+qtu9d7ioW5klMgsTTiUOUp+DJvfTTzKXoPbyC6YfgkNcyPSOg==
 
 luxon@^1.27.0:
   version "1.28.0"

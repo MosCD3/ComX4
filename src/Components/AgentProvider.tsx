@@ -28,11 +28,14 @@ import {
   CredentialState,
   CredentialStateChangedEvent,
   HttpOutboundTransport,
+  WsOutboundTransport,
   InitConfig,
   LogLevel,
+  MediatorPickupStrategy,
   ProofEventTypes,
   ProofState,
   ProofStateChangedEvent,
+  ConnectionState,
 } from '@aries-framework/core';
 
 import {agentDependencies} from '@aries-framework/react-native';
@@ -45,7 +48,7 @@ import {
   AgentMessageProcessedEvent,
   AgentMessageReceivedEvent,
 } from '@aries-framework/core/build/agent/Events';
-import Dts_Genesis from '../Assets/Dts_Genesis';
+import {Dts_Genesis, Vonx_Greenlight_Genesis} from '../Assets/Dts_Genesis';
 
 // const MEDIATOR_URL = 'https://63a0c82ee8fe.ngrok.io';
 
@@ -53,8 +56,12 @@ import Dts_Genesis from '../Assets/Dts_Genesis';
 //Head to https://mediator.animo.id/invitation then copy the resulting code
 //Head to https://indicio-tech.github.io/mediator/ then copy the resulting code
 var MEDIATOR_URL = 'https://mediator.animo.id/invitation';
+// var MEDIATOR_INVITE =
+//   'http://mediator.community.animo.id:9001?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiYTA0OTg5MzgtNzZiYS00MmQ5LWE1NWEtM2FkY2E4ZmQ5OTY3IiwgInJlY2lwaWVudEtleXMiOiBbIkF3TVl1UHJ4TWNSeUFpZmMxdTdnUkhaaUFyRVdNWnJ4bkprZ2ZwNDlmVkZ0Il0sICJsYWJlbCI6ICJBbmltbyBDb21tdW5pdHkgTWVkaWF0b3IiLCAic2VydmljZUVuZHBvaW50IjogImh0dHA6Ly9tZWRpYXRvci5jb21tdW5pdHkuYW5pbW8uaWQ6OTAwMSJ9';
+
 var MEDIATOR_INVITE =
   'http://mediator3.test.indiciotech.io:3000?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiYjE5YTM2ZjctZjhiZi00Mjg2LTg4ZjktODM4ZTIyZDI0ZjQxIiwgInJlY2lwaWVudEtleXMiOiBbIkU5VlhKY1pzaGlYcXFMRXd6R3RtUEpCUnBtMjl4dmJMYVpuWktTU0ZOdkE2Il0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cDovL21lZGlhdG9yMy50ZXN0LmluZGljaW90ZWNoLmlvOjMwMDAiLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==';
+
 const GENESIS_URL_INDICIO =
   'https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis';
 const GENESIS_URL_SOVRIN =
@@ -69,14 +76,16 @@ const GENESIS_URL_SOVRIN_BUILDER =
 //Settings
 const fetchMediatorInviteFromUrl = false;
 const randomiseWalletKeys = true;
-const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
+const autoAcceptConnections = true;
+// const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
+// const GENESIS_URL_DTS_Dev = 'http://dev.greenlight.bcovrin.vonx.io/genesis';
 const walletLabel = 'ComX';
 const walletID = 'comx4-s';
 const walletKey = 'comx4-walletkey10';
-const poolName = 'comx4-pool';
+// const poolName = 'comx4-pool';
 
 //Just change here
-const GENESIS_URL = GENESIS_URL_DTS;
+// const GENESIS_URL = GENESIS_URL_DTS_Dev;
 
 //just a helper function to simulate call
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -126,10 +135,17 @@ const handleQRCodeScanned = async (agent: Agent, code: string) => {
   const decodedInvitation = await ConnectionInvitationMessage.fromUrl(code);
 
   console.log('New Invitation:', decodedInvitation);
-  const connectionRecord = await agent.connections.receiveInvitation(
-    decodedInvitation,
+  //One way to do it
+  // const connectionRecord = await agent.connections.receiveInvitation(
+  //   decodedInvitation,
+  //   {
+  //     autoAcceptConnection: autoAcceptConnections,
+  //   },
+  // );
+  const connectionRecord = await agent.connections.receiveInvitationFromUrl(
+    code,
     {
-      autoAcceptConnection: true,
+      autoAcceptConnection: autoAcceptConnections,
     },
   );
   console.log(`Recieve invitation connection record:${connectionRecord}`);
@@ -160,6 +176,8 @@ const handleBasicMessageReceive = (
     `>> Basic Message Recieved OBJECT DUMP>>: ${JSON.stringify(event)}`,
   );
 };
+
+/**  CONNECTION EVENTS **/
 const handleConnectionStateChange = (
   agent: Agent,
   event: ConnectionStateChangedEvent,
@@ -168,6 +186,41 @@ const handleConnectionStateChange = (
     `>> Connection event for: ${event.payload.connectionRecord.id}, previous state -> ${event.payload.previousState} new state: ${event.payload.connectionRecord.state}`,
   );
   console.log(`>> Connection OBJECT DUMP>>: ${JSON.stringify(event)}`);
+
+  //No need to bother if auto accepting incoming connections
+  if (autoAcceptConnections) {
+    return;
+  }
+
+  //accepting connection invitation by sending request
+  if (event.payload.connectionRecord.state === ConnectionState.Invited) {
+    const message = `Accept connection with:${event.payload.connectionRecord.theirLabel}?`;
+    Alert.alert('Attention!', message, [
+      {
+        text: 'Accept',
+        onPress: () => {
+          agent.connections.acceptInvitation(event.payload.connectionRecord.id);
+        },
+      },
+      {
+        text: 'Reject',
+        onPress: () => {
+          console.log('User rejected');
+        },
+      },
+    ]);
+  }
+
+  //Sending ping trust to complete connection
+  if (event.payload.connectionRecord.state === ConnectionState.Responded) {
+    agent.connections.acceptResponse(event.payload.connectionRecord.id);
+  }
+
+  if (event.payload.connectionRecord.state === ConnectionState.Complete) {
+    Alert.alert(
+      `New connection with:${event.payload.connectionRecord.theirLabel} established`,
+    );
+  }
 };
 
 const handleCredentialStateChange = async (
@@ -181,7 +234,7 @@ const handleCredentialStateChange = async (
   console.log(`>===========================================>`);
   console.log(`>> Credential OBJECT DUMP>>: ${JSON.stringify(event)}`);
   console.log(`>===========================================>`);
-  if (event.payload.credentialRecord.state === 'offer-received') {
+  if (event.payload.credentialRecord.state === CredentialState.OfferReceived) {
     console.log(`>> Recieved offer, should display credentail to user`);
     console.log(`>> AUTO ACCEPTING OFFER`);
 
@@ -238,6 +291,10 @@ const handleProofStateChange = async (
   if (event.payload.proofRecord.state === ProofState.RequestReceived) {
     const proofRequest =
       event.payload.proofRecord.requestMessage?.indyProofRequest;
+    if (!proofRequest) {
+      console.log('Error: Proof request undefined');
+      return;
+    }
     const presentationPreview =
       event.payload.proofRecord.proposalMessage?.presentationProposal;
     const retrievedCredentials =
@@ -247,11 +304,44 @@ const handleProofStateChange = async (
       );
     const requestedCredentials =
       agent.proofs.autoSelectCredentialsForProofRequest(retrievedCredentials);
-    await agent.proofs.acceptRequest(
-      event.payload.proofRecord.id,
-      requestedCredentials,
-    );
+
+    var message = '>> Proof Request Recieved <<\n';
+    message += `To prove:${proofRequest?.name}\n`;
+    message += 'Attributes to prove:\n';
+
+    console.log(`======== Proof Object Dump ==============`);
+    console.log(JSON.stringify(proofRequest));
+
+    Object.values(proofRequest.requestedAttributes).forEach(attr => {
+      message += `${attr.name}\n`;
+    });
+
+    message += `Accept proof request?`;
+
+    Alert.alert('Attention!', message, [
+      {
+        text: 'Accept',
+        onPress: () => {
+          agent.proofs.acceptRequest(
+            event.payload.proofRecord.id,
+            requestedCredentials,
+          );
+        },
+      },
+      {
+        text: 'Reject',
+        onPress: () => {
+          console.log('User rejected offer');
+        },
+      },
+    ]);
   }
+};
+
+//Handle Custom Message Input
+const processCustomMessage = async (agent: Agent, message: string) => {
+  console.log(`===>Processing custom message:${message}`);
+  await agent.receiveMessage(message);
 };
 
 /*  INIT FUNCTIONS */
@@ -308,12 +398,15 @@ async function initAgent(setAgentFunc): Promise<string> {
     console.log('Mediator invitation:' + MEDIATOR_INVITE);
   }
 
+  /*
+  //Currently not used
   console.log('Downloading genesis');
 
   var genesisString = '';
   if (GENESIS_URL === GENESIS_URL_DTS) {
     genesisString = Dts_Genesis;
   } else {
+    console.log(`Downloading genesis from :${GENESIS_URL}`);
     const genesis = await downloadGenesis(GENESIS_URL);
     if (!genesis) {
       Alert.alert('Error downloading genesis file from:' + GENESIS_URL);
@@ -323,6 +416,7 @@ async function initAgent(setAgentFunc): Promise<string> {
     console.log('Saving genesis to file ..');
     genesisString = genesis;
   }
+  */
 
   //Use that only if you want to download and save genesis to a local file once,
   //or maybe store genesis string in a local db or prefs and dont bother with storage permissions
@@ -355,26 +449,37 @@ async function initAgent(setAgentFunc): Promise<string> {
         ? `${walletLabel}${timeNow.getTime()}`
         : walletLabel,
       mediatorConnectionsInvite: MEDIATOR_INVITE,
+      mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
       walletConfig: {
         id: randomiseWalletKeys ? `${walletID}${timeNow.getTime()}` : walletID,
         key: randomiseWalletKeys
           ? `${walletKey}${timeNow.getTime()}`
           : walletKey,
       },
-      autoAcceptConnections: true,
+      autoAcceptConnections: autoAcceptConnections,
       autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       autoAcceptProofs: AutoAcceptProof.ContentApproved,
-      poolName: randomiseWalletKeys
-        ? `${poolName}${timeNow.getTime()}`
-        : poolName,
-      genesisTransactions: genesisString,
+      indyLedgers: [
+        {
+          id: 'BCovrin Test',
+          genesisTransactions: Dts_Genesis,
+          isProduction: false,
+        },
+        {
+          id: 'Vonx Greenlight',
+          genesisTransactions: Vonx_Greenlight_Genesis,
+          isProduction: false,
+        },
+      ],
       // genesisPath: genesisPath,
       logger: new ConsoleLogger(LogLevel.debug),
     };
 
     const agent = new Agent(agentConfig, agentDependencies);
     const httpOutboundTransporter = new HttpOutboundTransport();
+    const wsOutboundTransporter = new WsOutboundTransport();
     agent.registerOutboundTransport(httpOutboundTransporter);
+    agent.registerOutboundTransport(wsOutboundTransporter);
 
     // Make sure to initialize the agent before using it.
     console.log('Processing agent init..');
