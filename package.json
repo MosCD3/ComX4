@@ -13,13 +13,20 @@
     "@aries-framework/core": "^0.1.0-alpha.287",
     "@aries-framework/react-native": "^0.1.0-alpha.287",
     "@azure/core-asynciterator-polyfill": "^1.0.0",
+    "@babel/preset-env": "^7.15.8",
+    "@react-native-async-storage/async-storage": "^1.15.9",
+    "@react-navigation/bottom-tabs": "^6.0.9",
+    "@react-navigation/native": "^6.0.6",
     "axios": "^0.21.1",
     "indy-sdk-react-native": "^0.1.14",
     "react": "17.0.2",
     "react-native": "0.65.1",
     "react-native-camera": "^4.1.1",
     "react-native-fs": "^2.18.0",
-    "react-native-get-random-values": "^1.7.0"
+    "react-native-get-random-values": "^1.7.0",
+    "react-native-safe-area-context": "^3.3.2",
+    "react-native-screens": "^3.8.0",
+    "react-native-windows": "^0.66.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

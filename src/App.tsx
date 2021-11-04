@@ -20,7 +20,8 @@ import {
 } from 'react-native';
 
 import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
-import AgentProvider from './Components/AgentProvider';
+import AgentProvider from './wrappers/AgentProvider';
+import AppWrapper from './wrappers/AppWrapper';
 
 const Section: React.FC<{
   title: string;
@@ -58,21 +59,8 @@ const App = () => {
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Agent">
-            <AgentProvider></AgentProvider>
-          </Section>
-        </View>
-      </ScrollView>
+    <SafeAreaView style={{flex: 1}}>
+      <AppWrapper />
     </SafeAreaView>
   );
 };
