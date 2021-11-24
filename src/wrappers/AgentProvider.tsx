@@ -48,6 +48,7 @@ import {
 
 import {useSettings} from './SettingsProvider';
 import AppSettings from '../models/AppSettings';
+import {LEDGERS} from '../Settings';
 
 // const MEDIATOR_URL = 'https://63a0c82ee8fe.ngrok.io';
 
@@ -249,18 +250,7 @@ async function initAgent(
       autoAcceptConnections: appSettings.agentAutoAcceptConnections,
       autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       autoAcceptProofs: AutoAcceptProof.ContentApproved,
-      indyLedgers: [
-        {
-          id: 'BCovrin Test',
-          genesisTransactions: Dts_Genesis,
-          isProduction: false,
-        },
-        {
-          id: 'Vonx Greenlight',
-          genesisTransactions: Vonx_Greenlight_Genesis,
-          isProduction: false,
-        },
-      ],
+      indyLedgers: LEDGERS,
       // genesisPath: genesisPath,
       logger: new ConsoleLogger(LogLevel.debug),
     };
