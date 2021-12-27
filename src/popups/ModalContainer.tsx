@@ -1,8 +1,8 @@
 import React, {useContext, useState} from 'react';
-import {Alert, Modal, StyleSheet, View} from 'react-native';
-// import Icon from 'react-native-vector-icons/AntDesign';
+import {Modal, StyleSheet, View} from 'react-native';
 import {ModalProps} from '../models';
 import {ModalContext} from '../wrappers/AppWrapper';
+import Icon from 'react-native-vector-icons/AntDesign';
 
 interface Props {
   modalProps: ModalProps;
@@ -20,7 +20,7 @@ const ModalContainer = (props: Props) => {
       }}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          {/* <View style={styles.topControlsWrapper}>
+          <View style={styles.topControlsWrapper}>
             <View style={styles.topControlsViewStyle}></View>
             <Icon
               name="close"
@@ -34,7 +34,7 @@ const ModalContainer = (props: Props) => {
                 });
               }}
             />
-          </View> */}
+          </View>
           {props.modalProps.children}
         </View>
       </View>

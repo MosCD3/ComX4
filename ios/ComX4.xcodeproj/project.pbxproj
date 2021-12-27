@@ -11,6 +11,7 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		4668AD4D277A0AA100C15D0B /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 4668AD4C277A0AA100C15D0B /* fonts */; };
 		469C628926D89E3800375721 /* Indy.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 469C628826D89E3800375721 /* Indy.framework */; };
 		469C628A26D89E3800375721 /* Indy.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 469C628826D89E3800375721 /* Indy.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6172F2D35A4C3AA820D92908 /* libPods-ComX4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6423831EA8574132BED9D8CC /* libPods-ComX4.a */; };
@@ -53,7 +54,9 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ComX4/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ComX4/main.m; sourceTree = "<group>"; };
 		1D0AE47A65C8663E3B452821 /* Pods-ComX4-ComX4Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ComX4-ComX4Tests.release.xcconfig"; path = "Target Support Files/Pods-ComX4-ComX4Tests/Pods-ComX4-ComX4Tests.release.xcconfig"; sourceTree = "<group>"; };
+		4668AD4C277A0AA100C15D0B /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		469C628826D89E3800375721 /* Indy.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Indy.framework; path = Pods/Frameworks/Indy.framework; sourceTree = "<group>"; };
+		4DB2D5A571624C9BA32289C2 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-ionicons/fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		6423831EA8574132BED9D8CC /* libPods-ComX4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ComX4.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C97AB639B58BBB4B15BBE30 /* Pods-ComX4-ComX4Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ComX4-ComX4Tests.debug.xcconfig"; path = "Target Support Files/Pods-ComX4-ComX4Tests/Pods-ComX4-ComX4Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ComX4/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -125,6 +128,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		2F8E406E15774491AEB065E5 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				4DB2D5A571624C9BA32289C2 /* Ionicons.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
@@ -135,12 +146,14 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				4668AD4C277A0AA100C15D0B /* fonts */,
 				13B07FAE1A68108700A75B9A /* ComX4 */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* ComX4Tests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				E233CBF5F47BEE60B243DCF8 /* Pods */,
+				2F8E406E15774491AEB065E5 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -262,6 +275,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4668AD4D277A0AA100C15D0B /* fonts in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 			);
