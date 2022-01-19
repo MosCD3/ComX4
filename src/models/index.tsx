@@ -1,4 +1,8 @@
-import {Agent, ConnectionRecord} from '@aries-framework/core';
+import {
+  Agent,
+  ConnectionInvitationMessage,
+  ConnectionRecord,
+} from '@aries-framework/core';
 import AppSettings from './AppSettings';
 export type ListItemType = {
   id: string;
@@ -21,6 +25,7 @@ export type AgentContextCommands = {
   startAgent?: () => string;
   processInvitationUrl?: (code: string) => void;
   processMessage?: (code: string) => void;
+  createConnection?: () => Promise<string>;
 };
 
 export type StorageContextType = {

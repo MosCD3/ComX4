@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {View, Alert} from 'react-native';
+import {parseUrl} from 'query-string';
 
 import RNFS from 'react-native-fs';
 import {
@@ -7,7 +8,6 @@ import {
   AutoAcceptCredential,
   AutoAcceptProof,
   BasicMessageEventTypes,
-  BasicMessageReceivedEvent,
   ConnectionEventTypes,
   ConnectionInvitationMessage,
   ConnectionRecord,
@@ -32,8 +32,6 @@ import {
 import {agentDependencies} from '@aries-framework/react-native';
 
 import axios from 'axios';
-
-import QRCodeScanner from '../components/QRCodeScanner';
 import {
   AgentEventTypes,
   AgentMessageProcessedEvent,
@@ -48,7 +46,7 @@ import {
 
 import {useSettings} from './SettingsProvider';
 import AppSettings from '../models/AppSettings';
-import {LEDGERS} from '../Settings';
+import {LEDGERS, MediatorEndpoint} from '../Settings';
 
 // const MEDIATOR_URL = 'https://63a0c82ee8fe.ngrok.io';
 
@@ -272,8 +270,6 @@ async function initAgent(
     console.log(error);
     return error;
   }
-
-  return '';
 }
 export const AgentContext = React.createContext<any>({});
 export const AgentCommandsContext = React.createContext<any>({});
@@ -318,13 +314,60 @@ const AgentProvider = ({children}) => {
     return await initAgent(setAgentState, getSettings());
   };
 
-  const processInvitationUrlFunc = async (code: string) => {
-    if (!agentState?.agent) {
+  const isRedirecton = (url: string): boolean => {
+    const queryParams = parseUrl(url).query;
+    return !(queryParams['c_i'] || queryParams['d_m']);
+  };
+
+  const createConnection = async () => {
+    let agent = agentState.agent;
+
+    if (!agent) {
       Alert.alert('Agent not initialized');
       return;
     }
 
+    const {invitation, connectionRecord} =
+      await agent.connections.createConnection();
+    console.log(`>> Connection Created, ID>>: ${connectionRecord.id}`);
+    console.log(`>> Invitation, DUMP>>: ${JSON.stringify(invitation)}`);
+    console.log(
+      `>> Connection Record, DUMP>>: ${JSON.stringify(connectionRecord)}`,
+    );
+    console.log(
+      `>> Creating connection invite, Endpoint>>: ${MediatorEndpoint}`,
+    );
+
+    const invite = invitation.toUrl({domain: MediatorEndpoint});
+
+    console.log(`>> Creating invite>>: ${invite}`);
+    return invite;
+  };
+
+  const processInvitationUrlFunc = async (code: string) => {
     let agent = agentState.agent;
+
+    if (!agent) {
+      Alert.alert('Agent not initialized');
+      return;
+    }
+
+    if (isRedirecton(code)) {
+      console.log(`Processing connectionless invitation message:${code}`);
+
+      const res = await fetch(code, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      const message = await res.json();
+      console.log(`Json data to process:${message}`);
+      await agent.receiveMessage(message);
+      return;
+    }
+
     console.log('Decoding connection Invitation from URL:', code);
     const decodedInvitation = await ConnectionInvitationMessage.fromUrl(code);
 
@@ -364,11 +407,22 @@ const AgentProvider = ({children}) => {
     console.log(`>> Connection OBJECT DUMP>>: ${JSON.stringify(event)}`);
 
     //No need to bother if auto accepting incoming connections
+    //Connection event for: 599f6d47-3038-4425-8214-4e2537f1565b, previous state -> responded new state: complete
+    if (
+      event.payload.previousState === ConnectionState.Responded &&
+      event.payload.connectionRecord.state === ConnectionState.Complete
+    ) {
+      Alert.alert(
+        `Connection with ${event.payload.connectionRecord.theirLabel} completed`,
+      );
+      return;
+    }
     if (getSettings().agentAutoAcceptConnections) {
       return;
     }
 
     //accepting connection invitation by sending request
+    //TODO: add logic to prevent displaying accept promot for connections created by ME
     if (event.payload.connectionRecord.state === ConnectionState.Invited) {
       const message = `Accept connection with:${event.payload.connectionRecord.theirLabel}?`;
       Alert.alert('Attention!', message, [
@@ -391,6 +445,9 @@ const AgentProvider = ({children}) => {
 
     //Sending ping trust to complete connection
     if (event.payload.connectionRecord.state === ConnectionState.Responded) {
+      console.log(
+        '############################################=> Accept response',
+      );
       agentState.agent?.connections.acceptResponse(
         event.payload.connectionRecord.id,
       );
@@ -421,6 +478,7 @@ const AgentProvider = ({children}) => {
     );
   };
 
+  /**  Credentials Handler */
   const handleCredentialStateChange = async (
     event: CredentialStateChangedEvent,
   ) => {
@@ -472,6 +530,7 @@ const AgentProvider = ({children}) => {
       ]);
     } else if (event.payload.credentialRecord.state === CredentialState.Done) {
       //Currently not being triggered
+      console.log('Donae saving credentials');
       Alert.alert('Credentail Saved');
     } else if (event.payload.credentialRecord.state === 'credential-received') {
       //No need for that step
@@ -482,28 +541,57 @@ const AgentProvider = ({children}) => {
     }
   };
 
+  /**  Proof State **/
   const handleProofStateChange = async (event: ProofStateChangedEvent) => {
     console.log(
       `>> Proof state changed: ${event.payload.proofRecord.id}, previous state -> ${event.payload.previousState} new state: ${event.payload.proofRecord.state}`,
     );
-    if (event.payload.proofRecord.state === ProofState.RequestReceived) {
-      const proofRequest =
-        event.payload.proofRecord.requestMessage?.indyProofRequest;
+
+    const proofRecord = event.payload.proofRecord;
+    if (!proofRecord) {
+      Alert.alert('Error[492] Proof record undefined!');
+      return;
+    }
+
+    const agent = agentState.agent;
+    if (!agent) {
+      Alert.alert('Error[498] Agent undefined!');
+      return;
+    }
+
+    // previous state -> presentation-sent new state: done
+    if (
+      event.payload.previousState === ProofState.PresentationSent &&
+      proofRecord.state === ProofState.Done
+    ) {
+      console.log('Done proving credentials');
+      Alert.alert('Credential Proved!');
+      return;
+    }
+    if (proofRecord.state === ProofState.RequestReceived) {
+      const proofRequest = proofRecord.requestMessage?.indyProofRequest;
       if (!proofRequest) {
         console.log('Error: Proof request undefined');
         return;
       }
-      const presentationPreview =
-        event.payload.proofRecord.proposalMessage?.presentationProposal;
+      // const presentationPreview =
+      //   proofRecord.proposalMessage?.presentationProposal;
+
+      //Retrieve credentials
       const retrievedCredentials =
-        await agentState.agent?.proofs.getRequestedCredentialsForProofRequest(
-          proofRequest!,
-          presentationPreview,
+        await agent.proofs.getRequestedCredentialsForProofRequest(
+          proofRecord.id,
+          {
+            filterByPresentationPreview: true,
+          },
         );
+      // const retrievedCredentials =
+      //   await agentState.agent?.proofs.getRequestedCredentialsForProofRequest(
+      //     proofRecord.id,
+      //     {filterByPresentationPreview: true},
+      //   );
       const requestedCredentials =
-        agentState.agent?.proofs.autoSelectCredentialsForProofRequest(
-          retrievedCredentials,
-        );
+        agent.proofs.autoSelectCredentialsForProofRequest(retrievedCredentials);
 
       var message = '>> Proof Request Recieved <<\n';
       message += `To prove:${proofRequest?.name}\n`;
@@ -543,7 +631,7 @@ const AgentProvider = ({children}) => {
     if (agentState?.agent && !listnersSet) {
       console.log('AgentInit: Setting event listners');
       agentState?.agent.events.on<BasicMessageReceivedEvent>(
-        BasicMessageEventTypes.BasicMessageReceived,
+        BasicMessageEventTypes.BasicMessageStateChanged,
         event => {
           handleBasicMessageReceive(event);
         },
@@ -587,6 +675,7 @@ const AgentProvider = ({children}) => {
           startAgent: startAgentFunc,
           processInvitationUrl: processInvitationUrlFunc,
           processMessage: processManualMessage,
+          createConnection: createConnection,
         }}>
         {children}
       </AgentCommandsContext.Provider>
