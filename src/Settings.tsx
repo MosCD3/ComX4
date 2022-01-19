@@ -12,3 +12,5 @@ export const LEDGERS = [
     isProduction: false,
   },
 ];
+
+export const MediatorEndpoint = 'http://mediator3.test.indiciotech.io:3000';

@@ -46,7 +46,7 @@ import {
 
 import {useSettings} from './SettingsProvider';
 import AppSettings from '../models/AppSettings';
-import {LEDGERS} from '../Settings';
+import {LEDGERS, MediatorEndpoint} from '../Settings';
 
 // const MEDIATOR_URL = 'https://63a0c82ee8fe.ngrok.io';
 
@@ -319,6 +319,31 @@ const AgentProvider = ({children}) => {
     return !(queryParams['c_i'] || queryParams['d_m']);
   };
 
+  const createConnection = async () => {
+    let agent = agentState.agent;
+
+    if (!agent) {
+      Alert.alert('Agent not initialized');
+      return;
+    }
+
+    const {invitation, connectionRecord} =
+      await agent.connections.createConnection();
+    console.log(`>> Connection Created, ID>>: ${connectionRecord.id}`);
+    console.log(`>> Invitation, DUMP>>: ${JSON.stringify(invitation)}`);
+    console.log(
+      `>> Connection Record, DUMP>>: ${JSON.stringify(connectionRecord)}`,
+    );
+    console.log(
+      `>> Creating connection invite, Endpoint>>: ${MediatorEndpoint}`,
+    );
+
+    const invite = invitation.toUrl({domain: MediatorEndpoint});
+
+    console.log(`>> Creating invite>>: ${invite}`);
+    return invite;
+  };
+
   const processInvitationUrlFunc = async (code: string) => {
     let agent = agentState.agent;
 
@@ -397,6 +422,7 @@ const AgentProvider = ({children}) => {
     }
 
     //accepting connection invitation by sending request
+    //TODO: add logic to prevent displaying accept promot for connections created by ME
     if (event.payload.connectionRecord.state === ConnectionState.Invited) {
       const message = `Accept connection with:${event.payload.connectionRecord.theirLabel}?`;
       Alert.alert('Attention!', message, [
@@ -419,6 +445,9 @@ const AgentProvider = ({children}) => {
 
     //Sending ping trust to complete connection
     if (event.payload.connectionRecord.state === ConnectionState.Responded) {
+      console.log(
+        '############################################=> Accept response',
+      );
       agentState.agent?.connections.acceptResponse(
         event.payload.connectionRecord.id,
       );
@@ -646,6 +675,7 @@ const AgentProvider = ({children}) => {
           startAgent: startAgentFunc,
           processInvitationUrl: processInvitationUrlFunc,
           processMessage: processManualMessage,
+          createConnection: createConnection,
         }}>
         {children}
       </AgentCommandsContext.Provider>

@@ -3,16 +3,17 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import StartUpPage from '../screens/StartUpPage';
 import SettingsPage from '../screens/SettingsPage';
 import Icon from 'react-native-vector-icons/AntDesign';
+import MainScreenStack from './MainScreenStack';
 
 const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator screenOptions={{headerShown: false}}>
       <Tab.Screen
         name="main"
-        component={StartUpPage}
+        component={MainScreenStack}
         options={{
-          tabBarLabel: 'Main',
+          tabBarLabel: 'Home',
           headerTitle: 'Welcome',
           tabBarIcon: ({color, size}) => {
             return <Icon name="home" size={size} color={color} />;

@@ -8,11 +8,26 @@ import {ListItemType} from '../models';
 import {CredentialRecord} from '@aries-framework/core';
 import {parseSchema} from '../Helpers';
 import InputTextArea from '../popups/InputTextArea';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RouteProp} from '@react-navigation/native';
+import {MainPageStackParams} from '../navigation/MainScreenStack';
 
-const StartUpPage = props => {
+interface Props {
+  navigation: StackNavigationProp<MainPageStackParams, 'Main'>;
+  route: RouteProp<MainPageStackParams, 'Main'>;
+}
+
+const StartUpPage: React.FC<Props> = ({navigation, route}) => {
   const {setModal} = useContext(ModalContext);
   const {startAgent, processInvitationUrl, processMessage} = useAgent();
   const {agent} = getAgent();
+
+  const dismissModal = () => {
+    setModal({
+      isVisible: false,
+      children: {},
+    });
+  };
 
   const qrCodeView = () => {
     return (
@@ -48,10 +63,19 @@ const StartUpPage = props => {
           return {id: x.id, title: _lable};
         });
 
-        console.log(`>> Credential OBJECT DUMP>>: ${JSON.stringify(newdata)}`);
+        console.log(`>> Connections OBJECT DUMP>>: ${JSON.stringify(newdata)}`);
         setModal({
           isVisible: true,
-          children: <GenericList items={newdata} />,
+          children: (
+            <GenericList
+              items={newdata}
+              buttonTitle="Invite"
+              buttonCallback={() => {
+                dismissModal();
+                navigation.push('Connections Invite');
+              }}
+            />
+          ),
         });
       }
     } else {

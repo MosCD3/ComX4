@@ -7,9 +7,11 @@ import GenericListItem from './cells/GenericListItem';
 
 interface Props {
   items: ListItemType[];
+  buttonTitle?: string;
+  buttonCallback?: () => void;
 }
 const GenericList = (props: Props) => {
-  const {items} = props;
+  const {items, buttonTitle, buttonCallback} = props;
   const {setModal} = useContext(ModalContext);
   const renderItem = element => {
     return <GenericListItem item={element.item} />;
@@ -22,12 +24,14 @@ const GenericList = (props: Props) => {
         keyExtractor={item => item.id}
         renderItem={renderItem}
       />
-      <Button
-        onPress={() => {
-          setModal({isVisible: false, children: null});
-        }}>
-        <Text>Close</Text>
-      </Button>
+      {buttonTitle && buttonCallback ? (
+        <Button
+          onPress={() => {
+            buttonCallback();
+          }}>
+          <Text>{buttonTitle}</Text>
+        </Button>
+      ) : null}
     </View>
   );
 };
