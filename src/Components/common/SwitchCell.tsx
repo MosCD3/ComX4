@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
   },
   textStyle: {
     textAlignVertical: 'center',
+    fontSize: 16,
   },
 });
 

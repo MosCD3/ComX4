@@ -1,4 +1,5 @@
 class AppSettings {
+  walletLabel: string = '';
   agentAutoAcceptConnections: boolean = false;
 }
 

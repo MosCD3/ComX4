@@ -2,6 +2,7 @@ import {
   Agent,
   ConnectionInvitationMessage,
   ConnectionRecord,
+  ConnectionRecordProps,
 } from '@aries-framework/core';
 import AppSettings from './AppSettings';
 export type ListItemType = {
@@ -21,11 +22,17 @@ export type AgentStateType = {
   loading: boolean;
 };
 
+export type NewConnectionRecord = {
+  connection: ConnectionRecord;
+  invitationUrl: string;
+};
+
 export type AgentContextCommands = {
   startAgent?: () => string;
   processInvitationUrl?: (code: string) => void;
   processMessage?: (code: string) => void;
-  createConnection?: () => Promise<string>;
+  createConnection?: () => Promise<NewConnectionRecord>;
+  deleteConnection?: (connection: ConnectionRecord) => boolean;
 };
 
 export type StorageContextType = {

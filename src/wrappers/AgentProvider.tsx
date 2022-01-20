@@ -42,6 +42,7 @@ import {
   AgentContextCommands,
   AgentStateType,
   ConnectionsStateType,
+  NewConnectionRecord,
 } from '../models';
 
 import {useSettings} from './SettingsProvider';
@@ -76,7 +77,7 @@ const fetchMediatorInviteFromUrl = false;
 const randomiseWalletKeys = true;
 // const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
 // const GENESIS_URL_DTS_Dev = 'http://dev.greenlight.bcovrin.vonx.io/genesis';
-const walletLabel = 'ComX';
+
 const walletID = 'comx4-s';
 const walletKey = 'comx4-walletkey10';
 // const poolName = 'comx4-pool';
@@ -187,56 +188,13 @@ async function initAgent(
     console.log('Mediator invitation:' + MEDIATOR_INVITE);
   }
 
-  /*
-  //Currently not used
-  console.log('Downloading genesis');
-
-  var genesisString = '';
-  if (GENESIS_URL === GENESIS_URL_DTS) {
-    genesisString = Dts_Genesis;
-  } else {
-    console.log(`Downloading genesis from :${GENESIS_URL}`);
-    const genesis = await downloadGenesis(GENESIS_URL);
-    if (!genesis) {
-      Alert.alert('Error downloading genesis file from:' + GENESIS_URL);
-      return 'Error download genesis';
-    }
-    console.log(`Genesis downloaded:${genesis}`);
-    console.log('Saving genesis to file ..');
-    genesisString = genesis;
-  }
-  */
-
-  //Use that only if you want to download and save genesis to a local file once,
-  //or maybe store genesis string in a local db or prefs and dont bother with storage permissions
-  /*
-  const genesisPath: string = await storeGenesis(genesisString, 'genesis.txn');
-
-  if (!genesisPath) {
-    return 'Error saving genesis';
-  }
-    console.log('Saved to:', genesisPath);
-  */
-
   console.log('initing agent');
-  //   await sleep(2000);
-  //   console.log('agent init done');
+
   var timeNow = new Date();
-
-  //Randomise wallet params each time, some mediators will not work on re-starting test with same pool id and other wallet keys
-
-  //   const randomiseWalletKeys = false;
-  // const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
-  // const walletLabel = 'ComX';
-  // const walletID = 'comx4-s';
-  // const walletKey = 'comx4-walletkey10';
-  // const poolName = 'comx4-pool';
 
   try {
     const agentConfig: InitConfig = {
-      label: randomiseWalletKeys
-        ? `${walletLabel}${timeNow.getTime()}`
-        : walletLabel,
+      label: appSettings.walletLabel,
       mediatorConnectionsInvite: MEDIATOR_INVITE,
       mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
       walletConfig: {
@@ -298,7 +256,7 @@ export const useAgent = (): AgentContextCommands => {
 //**************************** */
 //**************************** */
 const AgentProvider = ({children}) => {
-  const {setSettings, getSettings} = useSettings();
+  const {getSettings, getDeviceLabel} = useSettings();
   const [agentState, setAgentState] = useState<AgentStateType>({
     agent: null,
     loading: false,
@@ -319,12 +277,12 @@ const AgentProvider = ({children}) => {
     return !(queryParams['c_i'] || queryParams['d_m']);
   };
 
-  const createConnection = async () => {
+  const createConnection: Promise<NewConnectionRecord> = async () => {
     let agent = agentState.agent;
 
     if (!agent) {
       Alert.alert('Agent not initialized');
-      return;
+      return null;
     }
 
     const {invitation, connectionRecord} =
@@ -340,8 +298,27 @@ const AgentProvider = ({children}) => {
 
     const invite = invitation.toUrl({domain: MediatorEndpoint});
 
-    console.log(`>> Creating invite>>: ${invite}`);
-    return invite;
+    console.log(`>> Created invite>>: ${invite}`);
+    return {invitationUrl: invite, connection: connectionRecord};
+  };
+
+  const deleteConnection: Promise<boolean> = async (
+    connection: ConnectionRecord,
+  ) => {
+    let agent = agentState.agent;
+
+    if (!agent) {
+      Alert.alert('Agent not initialized');
+      return null;
+    }
+
+    try {
+      await agent.connections.deleteById(connection.id);
+      return true;
+    } catch (e) {
+      console.log(`Exception deleting connection:${e}`);
+    }
+    return false;
   };
 
   const processInvitationUrlFunc = async (code: string) => {
@@ -676,6 +653,7 @@ const AgentProvider = ({children}) => {
           processInvitationUrl: processInvitationUrlFunc,
           processMessage: processManualMessage,
           createConnection: createConnection,
+          deleteConnection: deleteConnection,
         }}>
         {children}
       </AgentCommandsContext.Provider>

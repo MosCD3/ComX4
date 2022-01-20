@@ -1,14 +1,32 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Alert} from 'react-native';
 import {SwitchCell} from '../components/common/SwitchCell';
 import {useStorage} from '../wrappers/StorageProvider';
-import {KEY_STORAGE_ISAUTOACCEPTCONN} from '../Constants';
+import {
+  KEY_STORAGE_ISAUTOACCEPTCONN,
+  KEY_STORAGE_WALLETLABEL,
+} from '../Constants';
 import {useSettings} from '../wrappers/SettingsProvider';
+import Input from '../components/common/Input';
+import {Button, Card} from '../components/common';
 
 const SettingsPage = props => {
-  const [autoAcceptConn, setAutoAcceptConnVal] = useState(false);
+  //Hooks
   const {setValue, getValue} = useStorage();
   const {setSettings, getSettings} = useSettings();
+
+  //State
+  const [autoAcceptConn, setAutoAcceptConnVal] = useState(false);
+  const [walletLabel, setWalletLabel] = useState('');
+  const [advancedViewVisible, setAdvancedViewVisible] = useState(false);
+
+  useEffect(() => {
+    //loading settings
+    let settings = getSettings();
+    setAutoAcceptConnVal(settings.agentAutoAcceptConnections);
+    console.log('I found wallet label in settings:' + settings.walletLabel);
+    setWalletLabel(settings.walletLabel);
+  }, []);
 
   const setAutoAcceptConnections = (val: boolean) => {
     //Set value in storage
@@ -21,19 +39,74 @@ const SettingsPage = props => {
     setSettings(settings);
   };
 
-  useEffect(() => {
-    //loading settings
+  function saveWalletLabel() {
+    console.log('please save wallet label:' + walletLabel);
+    if (!(walletLabel && walletLabel.trim())) {
+      Alert.alert('Please enter valid wallet label');
+      return;
+    }
+
+    //Save to storage
+    setValue(KEY_STORAGE_WALLETLABEL, walletLabel);
+
+    //update settings
     let settings = getSettings();
-    setAutoAcceptConnVal(settings.agentAutoAcceptConnections);
-  }, []);
+    settings.walletLabel = walletLabel;
+    setSettings(settings);
+  }
 
   return (
     <View style={styles.container}>
+      <Input
+        label="Wallet Label"
+        value={walletLabel}
+        onChangeText={text => setWalletLabel(text)}
+        onEndEditing={saveWalletLabel}
+        placeholder="Enter label"
+        style={styles.inputFieldStyle}
+      />
       <SwitchCell
         isToggled={autoAcceptConn}
         onToggled={setAutoAcceptConnections}
         title="Auto accept connections"
       />
+      <Button
+        onPress={() => {
+          setAdvancedViewVisible(!advancedViewVisible);
+        }}>
+        <Text>Advanced</Text>
+      </Button>
+      {advancedViewVisible ? (
+        <Card>
+          <Input
+            label="Wallet ID"
+            value={walletLabel}
+            onChangeText={text => setWalletLabel(text)}
+            onEndEditing={saveWalletLabel}
+            placeholder="Enter label"
+            style={styles.inputFieldStyle}
+          />
+          <Input
+            label="Wallet Key"
+            value={walletLabel}
+            onChangeText={text => setWalletLabel(text)}
+            onEndEditing={saveWalletLabel}
+            placeholder="Enter label"
+            style={styles.inputFieldStyle}
+          />
+          <View style={styles.spacer} />
+          <Text style={styles.captionTextStyle}>
+            Enabled?: Create new wallet on each app run
+          </Text>
+          <SwitchCell
+            isToggled={autoAcceptConn}
+            onToggled={setAutoAcceptConnections}
+            title="Randomise keys"
+          />
+        </Card>
+      ) : (
+        <View />
+      )}
     </View>
   );
 };
@@ -51,6 +124,13 @@ const styles = StyleSheet.create({
     borderColor: '#007aff',
     marginLeft: 5,
     marginRight: 5,
+  },
+  inputFieldStyle: {},
+  spacer: {
+    paddingTop: 20,
+  },
+  captionTextStyle: {
+    color: '#727272',
   },
 });
 

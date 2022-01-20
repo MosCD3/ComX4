@@ -79,7 +79,7 @@ const StartUpPage: React.FC<Props> = ({navigation, route}) => {
         });
       }
     } else {
-      Alert.alert('still cannot find aagent');
+      Alert.alert('still cannot find agent');
     }
   };
 
