@@ -20,7 +20,7 @@
     "@react-navigation/native-stack": "^6.2.5",
     "@react-navigation/stack": "^6.0.11",
     "axios": "^0.21.1",
-    "indy-sdk-react-native": "^0.1.14",
+    "indy-sdk-react-native": "^0.1.18",
     "react": "17.0.2",
     "react-native": "0.65.1",
     "react-native-camera": "^4.1.1",
