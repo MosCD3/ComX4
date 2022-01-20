@@ -1,7 +1,10 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
   KEY_STORAGE_ISAUTOACCEPTCONN,
+  KEY_STORAGE_WALLETID,
+  KEY_STORAGE_WALLETKEY,
   KEY_STORAGE_WALLETLABEL,
+  KEY_STORAGE_WALLET_RANDOMKEYS,
 } from '../Constants';
 import {SettingsContextType} from '../models';
 import AppSettings from '../models/AppSettings';
@@ -44,8 +47,50 @@ const SettingsProvider = ({children}) => {
         console.log(`Error[38] loading wallet label:${error}`);
       });
 
-    //load other settings
+    //Randomise wallet keys
+    getValue(KEY_STORAGE_WALLET_RANDOMKEYS).then(value => {
+      let boolVal = value === '1';
+      appSettings.walletRotateKeys = boolVal;
+    });
+
+    //load wallet ID
+    getValue(KEY_STORAGE_WALLETID)
+      .then(value => {
+        if (value) {
+          appSettings.walletID = value;
+          console.log(`Wallet id loaded:${appSettings.walletID}`);
+        } else {
+          var timeNow = new Date();
+          //TODO: create strong ID
+          appSettings.walletID = `ComXwid_${timeNow.getTime()}`;
+          console.log(
+            `Wallet id not set, setting new id:${appSettings.walletID}`,
+          );
+        }
+      })
+      .catch(error => {
+        console.log(`Error[74] loading wallet id:${error}`);
+      });
+
+    //load wallet Key
+    getValue(KEY_STORAGE_WALLETKEY)
+      .then(value => {
+        if (value) {
+          appSettings.walletKey = value;
+          console.log(`Wallet key loaded:${appSettings.walletKey}`);
+        } else {
+          //TODO: create strong Password
+          appSettings.walletKey = `123`;
+          console.log(
+            `Wallet key not set, setting new key:${appSettings.walletKey}`,
+          );
+        }
+      })
+      .catch(error => {
+        console.log(`Error[94] loading wallet key:${error}`);
+      });
   }, []);
+
   const setSettings = (val: AppSettings) => {
     setAppSettingsFunc(val);
   };

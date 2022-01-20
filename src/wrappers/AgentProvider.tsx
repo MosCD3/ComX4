@@ -74,14 +74,9 @@ const GENESIS_URL_SOVRIN_BUILDER =
 
 //Settings
 const fetchMediatorInviteFromUrl = false;
-const randomiseWalletKeys = true;
 // const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
 // const GENESIS_URL_DTS_Dev = 'http://dev.greenlight.bcovrin.vonx.io/genesis';
-
-const walletID = 'comx4-s';
-const walletKey = 'comx4-walletkey10';
 // const poolName = 'comx4-pool';
-
 //Just change here
 // const GENESIS_URL = GENESIS_URL_DTS_Dev;
 
@@ -198,10 +193,12 @@ async function initAgent(
       mediatorConnectionsInvite: MEDIATOR_INVITE,
       mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
       walletConfig: {
-        id: randomiseWalletKeys ? `${walletID}${timeNow.getTime()}` : walletID,
-        key: randomiseWalletKeys
-          ? `${walletKey}${timeNow.getTime()}`
-          : walletKey,
+        id: appSettings.walletRotateKeys
+          ? `comx4-${timeNow.getTime()}`
+          : appSettings.walletID,
+        key: appSettings.walletRotateKeys
+          ? `comx4key-${timeNow.getTime()}`
+          : appSettings.walletKey,
       },
       autoAcceptConnections: appSettings.agentAutoAcceptConnections,
       autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
