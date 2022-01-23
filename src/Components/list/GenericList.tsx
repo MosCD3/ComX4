@@ -1,5 +1,12 @@
 import React, {useContext} from 'react';
-import {Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
+import {
+  Dimensions,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {ListItemType} from '../../models';
 import {ModalContext} from '../../wrappers/AppWrapper';
 import {Button} from '../common';
@@ -9,12 +16,20 @@ interface Props {
   items: ListItemType[];
   buttonTitle?: string;
   buttonCallback?: () => void;
+  itemClicked?: (item: ListItemType) => void;
 }
 const GenericList = (props: Props) => {
-  const {items, buttonTitle, buttonCallback} = props;
-  const {setModal} = useContext(ModalContext);
-  const renderItem = element => {
-    return <GenericListItem item={element.item} />;
+  const {items, buttonTitle, buttonCallback, itemClicked} = props;
+  const renderItem = (item: ListItemType) => {
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          console.log('eeeeeeeeeeeee');
+          itemClicked?.(item);
+        }}>
+        <GenericListItem item={item} />
+      </TouchableOpacity>
+    );
   };
   return (
     <View style={styles.wrapper}>
@@ -22,7 +37,7 @@ const GenericList = (props: Props) => {
         style={{flexGrow: 0}}
         data={items}
         keyExtractor={item => item.id}
-        renderItem={renderItem}
+        renderItem={element => renderItem(element.item)}
       />
       {buttonTitle && buttonCallback ? (
         <Button

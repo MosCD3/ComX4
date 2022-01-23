@@ -19,7 +19,8 @@ interface Props {
 
 const StartUpPage: React.FC<Props> = ({navigation, route}) => {
   const {setModal} = useContext(ModalContext);
-  const {startAgent, processInvitationUrl, processMessage} = useAgent();
+  const {startAgent, processInvitationUrl, processMessage, getConnection} =
+    useAgent();
   const {agent} = getAgent();
 
   const dismissModal = () => {
@@ -53,6 +54,16 @@ const StartUpPage: React.FC<Props> = ({navigation, route}) => {
     );
   };
 
+  const connectionsListItemSelected = async (item: ListItemType) => {
+    console.log(`Please process connection with id:${item.id}`);
+    let connection = await getConnection?.(item.id);
+    if (!connection) {
+      Alert.alert('Cannot fetch connection from agent!');
+      return;
+    }
+    navigation.navigate('Connection Details', {connectionID: item.id});
+  };
+
   const showAllConnections = async () => {
     if (agent) {
       let connections = await agent.connections?.getAll();
@@ -63,12 +74,15 @@ const StartUpPage: React.FC<Props> = ({navigation, route}) => {
           return {id: x.id, title: _lable};
         });
 
-        console.log(`>> Connections OBJECT DUMP>>: ${JSON.stringify(newdata)}`);
         setModal({
           isVisible: true,
           children: (
             <GenericList
               items={newdata}
+              itemClicked={item => {
+                dismissModal();
+                connectionsListItemSelected(item);
+              }}
               buttonTitle="Invite"
               buttonCallback={() => {
                 dismissModal();

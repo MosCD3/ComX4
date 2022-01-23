@@ -318,6 +318,17 @@ const AgentProvider = ({children}) => {
     return false;
   };
 
+  const getConnection = async (id: string) => {
+    let agent = agentState.agent;
+
+    if (!agent) {
+      Alert.alert('Agent not initialized');
+      return null;
+    }
+
+    return agent.connections.getById(id);
+  };
+
   const processInvitationUrlFunc = async (code: string) => {
     let agent = agentState.agent;
 
@@ -651,6 +662,7 @@ const AgentProvider = ({children}) => {
           processMessage: processManualMessage,
           createConnection: createConnection,
           deleteConnection: deleteConnection,
+          getConnection: getConnection,
         }}>
         {children}
       </AgentCommandsContext.Provider>

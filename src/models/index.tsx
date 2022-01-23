@@ -33,6 +33,7 @@ export type AgentContextCommands = {
   processMessage?: (code: string) => void;
   createConnection?: () => Promise<NewConnectionRecord>;
   deleteConnection?: (connection: ConnectionRecord) => boolean;
+  getConnection?: (id: string) => Promise<ConnectionRecord> | undefined;
 };
 
 export type StorageContextType = {

@@ -26,20 +26,18 @@ const GenericListItem = (props: Props) => {
   });
 
   return (
-    <TouchableWithoutFeedback onPress={() => setDetailsVisible(true)}>
-      <View>
-        <CardSection>
-          <View style={styles.cardWrapper}>
-            <Text style={styles.titleStyle}>{title}</Text>
-            {/* {expanded ? (
+    <View>
+      <CardSection>
+        <View style={styles.cardWrapper}>
+          <Text style={styles.titleStyle}>{title}</Text>
+          {/* {expanded ? (
               <View style={styles.descStyle}>
                 <Text>{description}</Text>
               </View>
             ) : null} */}
-          </View>
-        </CardSection>
-      </View>
-    </TouchableWithoutFeedback>
+        </View>
+      </CardSection>
+    </View>
   );
 };
 
