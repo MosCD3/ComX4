@@ -1,23 +1,28 @@
 import React, {useEffect, useState} from 'react';
 import {TextInput, View, Text, ViewStyle, StyleSheet} from 'react-native';
+import {Button} from '.';
 
 interface Props {
-  label: string;
+  label?: string;
+  labelButtonRight: string | undefined;
   value?: string;
   onChangeText?: (text: string | undefined) => void;
   onEndEditing?: () => void;
   placeholder?: string;
   secureTextEntry?: boolean;
   style?: ViewStyle;
+  onLeftButtonClick?: () => void;
 }
 const Input: React.FC<Props> = ({
   label,
+  labelButtonRight,
   value,
   onChangeText,
   onEndEditing,
   placeholder,
   secureTextEntry,
   style,
+  onLeftButtonClick,
 }) => {
   const {inputStyle, labelStyle, containerStyle} = styles;
   const [textValue, setFieldValue] = useState(value);
@@ -28,7 +33,7 @@ const Input: React.FC<Props> = ({
 
   return (
     <View style={[style, containerStyle]}>
-      <Text style={labelStyle}>{label}</Text>
+      {label != undefined ? <Text style={labelStyle}>{label}</Text> : <View />}
       <TextInput
         secureTextEntry={secureTextEntry}
         placeholder={placeholder}
@@ -39,9 +44,19 @@ const Input: React.FC<Props> = ({
           setFieldValue(text);
         }}
         onEndEditing={() => {
-          onEndEditing();
+          onEndEditing?.();
         }}
       />
+      {labelButtonRight && onLeftButtonClick ? (
+        <Button
+          onPress={onLeftButtonClick}
+          style={styles.leftButtonStyle}
+          noMargin={true}>
+          <Text>{labelButtonRight}</Text>
+        </Button>
+      ) : (
+        <View />
+      )}
     </View>
   );
 };
@@ -65,6 +80,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingLeft: 0,
     flex: 1,
+  },
+  leftButtonStyle: {
+    flex: 1,
+    marginLeft: 5,
+    marginTop: 2,
+    marginBottom: 2,
   },
   containerStyle: {
     height: 50,

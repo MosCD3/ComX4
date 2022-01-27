@@ -21,7 +21,7 @@ const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
   const [connection, setConnection] = useState<ConnectionRecord>();
 
   const initComponent = async () => {
-    let conn = await getConnection(connectionID);
+    let conn = await getConnection?.(connectionID);
     if (!conn) {
       Alert.alert('Cannot fetch connection from agent!');
       return;
@@ -31,7 +31,6 @@ const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
 
   useEffect(() => {
     initComponent();
-    1;
   }, []);
 
   return (
@@ -48,7 +47,11 @@ const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
         />
         <LabledValue label="State" value={connection?.state} />
       </Card>
-      <Button>
+      <Button
+        onPress={
+          () => navigation.navigate('Messages', {connectionID: connectionID})
+          // navigation.navigate('Chat', {connectionID: connectionID})
+        }>
         <Text>Message</Text>
       </Button>
       <Button>
