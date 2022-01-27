@@ -56,11 +56,6 @@ const StartUpPage: React.FC<Props> = ({navigation, route}) => {
 
   const connectionsListItemSelected = async (item: ListItemType) => {
     console.log(`Please process connection with id:${item.id}`);
-    let connection = await getConnection?.(item.id);
-    if (!connection) {
-      Alert.alert('Cannot fetch connection from agent!');
-      return;
-    }
     navigation.navigate('Connection Details', {connectionID: item.id});
   };
 

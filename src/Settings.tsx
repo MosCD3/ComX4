@@ -1,4 +1,8 @@
-import {Dts_Genesis, Vonx_Greenlight_Genesis} from './Assets/Dts_Genesis';
+import {
+  CANDy_Genesis,
+  Dts_Genesis,
+  Vonx_Greenlight_Genesis,
+} from './Assets/Dts_Genesis';
 
 export const LEDGERS = [
   {
@@ -9,6 +13,11 @@ export const LEDGERS = [
   {
     id: 'Vonx Greenlight',
     genesisTransactions: Vonx_Greenlight_Genesis,
+    isProduction: false,
+  },
+  {
+    id: 'CandyDev',
+    genesisTransactions: CANDy_Genesis,
     isProduction: false,
   },
 ];

@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View, Alert} from 'react-native';
 import {parseUrl} from 'query-string';
 
@@ -27,6 +27,7 @@ import {
   ProofState,
   ProofStateChangedEvent,
   ConnectionState,
+  BasicMessageStateChangedEvent,
 } from '@aries-framework/core';
 
 import {agentDependencies} from '@aries-framework/react-native';
@@ -48,6 +49,8 @@ import {
 import {useSettings} from './SettingsProvider';
 import AppSettings from '../models/AppSettings';
 import {LEDGERS, MediatorEndpoint} from '../Settings';
+
+type MessageRecievedCallback = (id: string, message: string) => void;
 
 // const MEDIATOR_URL = 'https://63a0c82ee8fe.ngrok.io';
 
@@ -253,13 +256,23 @@ export const useAgent = (): AgentContextCommands => {
 //**************************** */
 //**************************** */
 const AgentProvider = ({children}) => {
+  //Hooks
   const {getSettings, getDeviceLabel} = useSettings();
+
+  //State
   const [agentState, setAgentState] = useState<AgentStateType>({
     agent: null,
     loading: false,
   });
   const [listnersSet, setListnersSet] = useState(false);
+  const [basicMessageListner, setBasicMessageListner] =
+    useState<MessageRecievedCallback>();
+  // var basicMessageListner: MessageRecievedCallback;
+  const [basicMessageListnerId, setBasicMessageListnerId] = useState();
+  const stateRef = useRef();
+  stateRef.current = basicMessageListner;
 
+  //Init methods
   const startAgentFunc = async () => {
     console.log(`Called to start agent`);
     if (agentState?.agent) {
@@ -274,6 +287,7 @@ const AgentProvider = ({children}) => {
     return !(queryParams['c_i'] || queryParams['d_m']);
   };
 
+  // ####### Provider Hooks Functions ###############
   const createConnection: Promise<NewConnectionRecord> = async () => {
     let agent = agentState.agent;
 
@@ -382,6 +396,33 @@ const AgentProvider = ({children}) => {
     agentState?.agent?.receiveMessage(message);
   };
 
+  //Send basic message to a connection. used in the chat module
+  const sendBasicMessage = async (toID: string, message: string) => {
+    let agent = agentState.agent;
+
+    if (!agent) {
+      Alert.alert('Agent not initialized');
+      return;
+    }
+    try {
+      console.log(`Sending basic message to id:${toID}/Message:${message}`);
+      await agent.basicMessages.sendMessage(toID, message);
+    } catch (e) {
+      Alert.alert(e);
+    }
+  };
+
+  const subscribeToBasicMessages = (
+    fromId: string,
+    callback: MessageRecievedCallback,
+  ) => {
+    setBasicMessageListnerId(fromId);
+    setBasicMessageListner(callback);
+
+    // basicMessageListner = callback;
+    console.log('Basic message listenr SETTTTT');
+  };
+
   /**   EVENT HANDLERS **/
   /**********************/
   /**  CONNECTION EVENTS **/
@@ -455,11 +496,22 @@ const AgentProvider = ({children}) => {
     );
   };
 
-  const handleBasicMessageReceive = (event: BasicMessageReceivedEvent) => {
-    Alert.alert(`message:${event.payload.message.content}`);
+  const handleBasicMessageReceive = (event: BasicMessageStateChangedEvent) => {
+    // Alert.alert(`message:${event.payload.message.content}`);
 
     console.log(
       `>> Basic Message Recieved OBJECT DUMP>>: ${JSON.stringify(event)}`,
+    );
+
+    const fromId = event.payload.basicMessageRecord.connectionId;
+    console.log(`>> Message from>>: ${fromId}`);
+
+    if (!basicMessageListner) {
+      console.log('ERROR: basicMessageListner undefined!');
+    }
+    basicMessageListner?.(
+      event.payload.message.id,
+      event.payload.message.content,
     );
   };
 
@@ -615,7 +667,7 @@ const AgentProvider = ({children}) => {
   useEffect(() => {
     if (agentState?.agent && !listnersSet) {
       console.log('AgentInit: Setting event listners');
-      agentState?.agent.events.on<BasicMessageReceivedEvent>(
+      agentState?.agent.events.on<BasicMessageStateChangedEvent>(
         BasicMessageEventTypes.BasicMessageStateChanged,
         event => {
           handleBasicMessageReceive(event);
@@ -658,11 +710,14 @@ const AgentProvider = ({children}) => {
       <AgentCommandsContext.Provider
         value={{
           startAgent: startAgentFunc,
+          getAgent: agentState.agent,
           processInvitationUrl: processInvitationUrlFunc,
           processMessage: processManualMessage,
           createConnection: createConnection,
           deleteConnection: deleteConnection,
           getConnection: getConnection,
+          sendBasicMessage: sendBasicMessage,
+          subscribeToBasicMessages: subscribeToBasicMessages,
         }}>
         {children}
       </AgentCommandsContext.Provider>

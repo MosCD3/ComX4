@@ -24,7 +24,6 @@ const GenericList = (props: Props) => {
     return (
       <TouchableOpacity
         onPress={() => {
-          console.log('eeeeeeeeeeeee');
           itemClicked?.(item);
         }}>
         <GenericListItem item={item} />

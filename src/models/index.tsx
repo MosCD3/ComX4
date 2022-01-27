@@ -29,11 +29,18 @@ export type NewConnectionRecord = {
 
 export type AgentContextCommands = {
   startAgent?: () => string;
+  getAgent: Agent;
   processInvitationUrl?: (code: string) => void;
   processMessage?: (code: string) => void;
   createConnection?: () => Promise<NewConnectionRecord>;
   deleteConnection?: (connection: ConnectionRecord) => boolean;
   getConnection?: (id: string) => Promise<ConnectionRecord> | undefined;
+  sendBasicMessage?: (toID: string, message: string) => void;
+  subscribeToBasicMessages?: (
+    fromId: string,
+    callback: (id: string, message: string) => void,
+  ) => void;
+  unsubscribeToBasicMessages?: () => void;
 };
 
 export type StorageContextType = {
