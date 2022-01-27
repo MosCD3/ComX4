@@ -49,7 +49,7 @@ const ConnectionsInvitePage: React.FC<Props> = ({route, navigation}) => {
       return;
     }
 
-    const deleted = await deleteConnection(newConnection);
+    const deleted = await deleteConnection(newConnection.id);
     if (deleted) {
       navigation.goBack();
     }

@@ -15,8 +15,13 @@ interface Props {
 const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
   const {connectionID} = route.params;
 
-  const {startAgent, processInvitationUrl, processMessage, getConnection} =
-    useAgent();
+  const {
+    startAgent,
+    processInvitationUrl,
+    processMessage,
+    getConnection,
+    deleteConnection,
+  } = useAgent();
 
   const [connection, setConnection] = useState<ConnectionRecord>();
 
@@ -27,6 +32,17 @@ const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
       return;
     }
     setConnection(conn);
+  };
+
+  const deleteCurrentConnection = async () => {
+    if (!deleteConnection) {
+      Alert.alert('Cannot find hook deleteConnection!');
+      return;
+    }
+    const deleted = await deleteConnection(connectionID);
+    if (deleted) {
+      navigation.goBack();
+    }
   };
 
   useEffect(() => {
@@ -54,7 +70,21 @@ const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
         }>
         <Text>Message</Text>
       </Button>
-      <Button>
+      <Button
+        onPress={() => {
+          Alert.alert('Attention!', 'Delete connection?', [
+            {
+              text: 'Delete',
+              onPress: () => {
+                deleteCurrentConnection();
+              },
+            },
+            {
+              text: 'Cancel',
+              onPress: () => {},
+            },
+          ]);
+        }}>
         <Text>Delete</Text>
       </Button>
     </View>

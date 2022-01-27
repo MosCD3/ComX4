@@ -33,7 +33,7 @@ export type AgentContextCommands = {
   processInvitationUrl?: (code: string) => void;
   processMessage?: (code: string) => void;
   createConnection?: () => Promise<NewConnectionRecord>;
-  deleteConnection?: (connection: ConnectionRecord) => boolean;
+  deleteConnection?: (connectionId: string) => boolean;
   getConnection?: (id: string) => Promise<ConnectionRecord> | undefined;
   sendBasicMessage?: (toID: string, message: string) => void;
   subscribeToBasicMessages?: (

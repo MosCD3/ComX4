@@ -4,7 +4,6 @@ import StartUpPage from '../screens/StartUpPage';
 import ConnectionsInvitePage from '../screens/ConnectionsInvitePage';
 import ConnectionDetailsPage from '../screens/ConnectionDetailsPage';
 import {ConnectionRecord} from '@aries-framework/core';
-import ChatPage from '../screens/ChatPage';
 import MessagesPage from '../screens/MessagesPage';
 
 export type MainPageStackParams = {
@@ -28,7 +27,6 @@ const MainScreenStack = () => {
         name="Connection Details"
         component={ConnectionDetailsPage}
       />
-      <Stack.Screen name="Chat" component={ChatPage} />
       <Stack.Screen name="Messages" component={MessagesPage} />
     </Stack.Navigator>
   );

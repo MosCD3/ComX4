@@ -313,9 +313,7 @@ const AgentProvider = ({children}) => {
     return {invitationUrl: invite, connection: connectionRecord};
   };
 
-  const deleteConnection: Promise<boolean> = async (
-    connection: ConnectionRecord,
-  ) => {
+  const deleteConnection: Promise<boolean> = async (connectionId: string) => {
     let agent = agentState.agent;
 
     if (!agent) {
@@ -324,7 +322,7 @@ const AgentProvider = ({children}) => {
     }
 
     try {
-      await agent.connections.deleteById(connection.id);
+      await agent.connections.deleteById(connectionId);
       return true;
     } catch (e) {
       console.log(`Exception deleting connection:${e}`);
