@@ -1,11 +1,24 @@
 import React from 'react';
-import {Text, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity, ViewStyle} from 'react-native';
+interface Props {
+  onPress: () => void;
+  style?: ViewStyle;
+  children?: Element;
+  noMargin?: boolean | false;
+}
 
-const Button = ({onPress, children}) => {
-  const {buttonStyle, textStyle} = styles;
+const Button = (props: Props) => {
+  const {onPress, children, style} = props;
+  const {buttonStyle, textStyle, buttonPadding} = styles;
 
   return (
-    <TouchableOpacity onPress={onPress} style={buttonStyle}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={
+        props.noMargin
+          ? [style, buttonStyle]
+          : [style, buttonStyle, buttonPadding]
+      }>
       <Text style={styles.textStyle}>{children}</Text>
     </TouchableOpacity>
   );
@@ -26,6 +39,8 @@ const styles = {
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#007aff',
+  },
+  buttonPadding: {
     marginTop: 10,
     marginBottom: 10,
   },
