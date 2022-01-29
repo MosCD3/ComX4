@@ -4,7 +4,7 @@ import {Button} from '.';
 
 interface Props {
   label?: string;
-  labelButtonRight: string | undefined;
+  labelButtonRight?: string | undefined;
   value?: string;
   onChangeText?: (text: string | undefined) => void;
   onEndEditing?: () => void;

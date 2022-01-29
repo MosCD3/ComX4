@@ -7,8 +7,7 @@ import {RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View, StyleSheet, Text, Alert, TextInput, FlatList} from 'react-native';
-import {Header} from '../components/common';
-import Input from '../components/common/Input';
+import {Header, Input} from '../components/common';
 import {MainPageStackParams} from '../navigation/MainScreenStack';
 import {useAgent} from '../wrappers/AgentProvider';
 

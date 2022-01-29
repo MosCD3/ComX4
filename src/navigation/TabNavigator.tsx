@@ -4,6 +4,8 @@ import StartUpPage from '../screens/StartUpPage';
 import SettingsPage from '../screens/SettingsPage';
 import Icon from 'react-native-vector-icons/AntDesign';
 import MainScreenStack from './MainScreenStack';
+import SettingsScreen from '../screens/SettingsScreen';
+import SettingsScreenStack from './SettingsTabStack';
 
 const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
@@ -22,7 +24,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="settings"
-        component={SettingsPage}
+        component={SettingsScreenStack}
         options={{
           tabBarLabel: 'Settings',
           headerTitle: 'Settings',

@@ -10,10 +10,9 @@ import {
   KEY_STORAGE_WALLET_RANDOMKEYS,
 } from '../Constants';
 import {useSettings} from '../wrappers/SettingsProvider';
-import Input from '../components/common/Input';
-import {Button, Card} from '../components/common';
+import {Button, Card, Input} from '../components/common';
 
-const SettingsPage = props => {
+const SettingsPage: React.FC = () => {
   //Hooks
   const {setValue, getValue} = useStorage();
   const {setSettings, getSettings} = useSettings();
