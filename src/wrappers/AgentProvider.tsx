@@ -207,6 +207,7 @@ async function initAgent(
       autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
       autoAcceptProofs: AutoAcceptProof.ContentApproved,
       indyLedgers: LEDGERS,
+      publicDidSeed: 'issuer20000000000000000000000000',
       // genesisPath: genesisPath,
       logger: new ConsoleLogger(LogLevel.debug),
     };

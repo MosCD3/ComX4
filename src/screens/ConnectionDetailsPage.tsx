@@ -7,6 +7,7 @@ import {ConnectionRecord} from '@aries-framework/core';
 import {useAgent} from '../wrappers/AgentProvider';
 import {Button, Card, CardSection, Header} from '../components/common';
 import LabledValue from '../components/common/LabeledValue';
+import {issueCredential} from '../services/credentials.service';
 
 interface Props {
   navigation: StackNavigationProp<MainPageStackParams, 'Connection Details'>;
@@ -18,7 +19,7 @@ const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
   const {
     startAgent,
     processInvitationUrl,
-    processMessage,
+    getAgent,
     getConnection,
     deleteConnection,
   } = useAgent();
@@ -42,6 +43,16 @@ const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
     const deleted = await deleteConnection(connectionID);
     if (deleted) {
       navigation.goBack();
+    }
+  };
+
+  const offerCredential = async () => {
+    try {
+      await issueCredential(getAgent, connectionID);
+      Alert.alert('Done');
+    } catch (e) {
+      console.log('Exception creating offer:', e);
+      Alert.alert('Offer credential failed!');
     }
   };
 
@@ -69,6 +80,12 @@ const ConnectionDetailsPage: React.FC<Props> = ({route, navigation}) => {
           // navigation.navigate('Chat', {connectionID: connectionID})
         }>
         <Text>Message</Text>
+      </Button>
+      <Button
+        onPress={() => {
+          offerCredential();
+        }}>
+        <Text>Offer Credential</Text>
       </Button>
       <Button
         onPress={() => {
