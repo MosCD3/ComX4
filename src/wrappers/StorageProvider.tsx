@@ -22,7 +22,6 @@ const StorageProvider = ({children}) => {
   const getValue = async (key: string): Promise<string | null> => {
     try {
       let resturned = await AsyncStorage.getItem(key);
-      console.log(`Got value:${resturned}`);
       console.log(`AsyncStorage: Get=> key:${key} value:${resturned}`);
       return resturned;
     } catch (error) {

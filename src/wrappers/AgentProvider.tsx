@@ -48,40 +48,13 @@ import {
 
 import {useSettings} from './SettingsProvider';
 import AppSettings from '../models/AppSettings';
-import {LEDGERS, MediatorEndpoint} from '../Settings';
+import {getWalletConfig} from '../services/wallet.service';
+import {MediatorEndpoint} from '../Constants';
 
 type MessageRecievedCallback = (id: string, message: string) => void;
 
-// const MEDIATOR_URL = 'https://63a0c82ee8fe.ngrok.io';
-
-//Mediator URL
-//Head to https://mediator.animo.id/invitation then copy the resulting code
-//Head to https://indicio-tech.github.io/mediator/ then copy the resulting code
-var MEDIATOR_URL = 'https://mediator.animo.id/invitation';
-// var MEDIATOR_INVITE =
-//   'http://mediator.community.animo.id:9001?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiYTA0OTg5MzgtNzZiYS00MmQ5LWE1NWEtM2FkY2E4ZmQ5OTY3IiwgInJlY2lwaWVudEtleXMiOiBbIkF3TVl1UHJ4TWNSeUFpZmMxdTdnUkhaaUFyRVdNWnJ4bkprZ2ZwNDlmVkZ0Il0sICJsYWJlbCI6ICJBbmltbyBDb21tdW5pdHkgTWVkaWF0b3IiLCAic2VydmljZUVuZHBvaW50IjogImh0dHA6Ly9tZWRpYXRvci5jb21tdW5pdHkuYW5pbW8uaWQ6OTAwMSJ9';
-
-var MEDIATOR_INVITE =
-  'http://mediator3.test.indiciotech.io:3000?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiYjE5YTM2ZjctZjhiZi00Mjg2LTg4ZjktODM4ZTIyZDI0ZjQxIiwgInJlY2lwaWVudEtleXMiOiBbIkU5VlhKY1pzaGlYcXFMRXd6R3RtUEpCUnBtMjl4dmJMYVpuWktTU0ZOdkE2Il0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cDovL21lZGlhdG9yMy50ZXN0LmluZGljaW90ZWNoLmlvOjMwMDAiLCAibGFiZWwiOiAiSW5kaWNpbyBQdWJsaWMgTWVkaWF0b3IifQ==';
-
-const GENESIS_URL_INDICIO =
-  'https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis';
-const GENESIS_URL_SOVRIN =
-  'https://raw.githubusercontent.com/sovrin-foundation/sovrin/1.1.50-master/sovrin/pool_transactions_sandbox_genesis';
-
-const GENESIS_URL_SOVRIN_LIVE =
-  'https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_live_genesis';
-
-const GENESIS_URL_SOVRIN_BUILDER =
-  'https://github.com/sovrin-foundation/sovrin/blob/master/sovrin/pool_transactions_builder_genesis';
-
 //Settings
 const fetchMediatorInviteFromUrl = false;
-// const GENESIS_URL_DTS = 'http://test.bcovrin.vonx.io/genesis';
-// const GENESIS_URL_DTS_Dev = 'http://dev.greenlight.bcovrin.vonx.io/genesis';
-// const poolName = 'comx4-pool';
-//Just change here
-// const GENESIS_URL = GENESIS_URL_DTS_Dev;
 
 //just a helper function to simulate call
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -178,40 +151,16 @@ Main Function Init Agent
 */
 async function initAgent(
   setAgentFunc,
-  appSettings: AppSettings,
-): Promise<string> {
-  console.log('Getting mediator url');
-  if (fetchMediatorInviteFromUrl) {
-    MEDIATOR_INVITE = await getMediatorInvite(MEDIATOR_URL);
-    console.log('Mediator invitation:' + MEDIATOR_INVITE);
-  }
+  agentConfig: InitConfig,
+): Promise<string | undefined> {
+  // console.log('Getting mediator url');
+  // if (fetchMediatorInviteFromUrl) {
+  //   MEDIATOR_INVITE = await getMediatorInvite(MEDIATOR_URL);
+  //   console.log('Mediator invitation:' + MEDIATOR_INVITE);
+  // }
 
   console.log('initing agent');
-
-  var timeNow = new Date();
-
   try {
-    const agentConfig: InitConfig = {
-      label: appSettings.walletLabel,
-      mediatorConnectionsInvite: MEDIATOR_INVITE,
-      mediatorPickupStrategy: MediatorPickupStrategy.Implicit,
-      walletConfig: {
-        id: appSettings.walletRotateKeys
-          ? `comx4-${timeNow.getTime()}`
-          : appSettings.walletID,
-        key: appSettings.walletRotateKeys
-          ? `comx4key-${timeNow.getTime()}`
-          : appSettings.walletKey,
-      },
-      autoAcceptConnections: appSettings.agentAutoAcceptConnections,
-      autoAcceptCredentials: AutoAcceptCredential.ContentApproved,
-      autoAcceptProofs: AutoAcceptProof.ContentApproved,
-      indyLedgers: LEDGERS,
-      publicDidSeed: 'issuer20000000000000000000000000',
-      // genesisPath: genesisPath,
-      logger: new ConsoleLogger(LogLevel.debug),
-    };
-
     const agent = new Agent(agentConfig, agentDependencies);
     const httpOutboundTransporter = new HttpOutboundTransport();
     const wsOutboundTransporter = new WsOutboundTransport();
@@ -223,11 +172,9 @@ async function initAgent(
     await agent.initialize();
     console.log('Initialized agent!');
     setAgentFunc({agent: agent, loading: false});
-
-    return null;
   } catch (error) {
     console.log(error);
-    return error;
+    return `${error}`;
   }
 }
 export const AgentContext = React.createContext<any>({});
@@ -266,6 +213,7 @@ const AgentProvider = ({children}) => {
     loading: false,
   });
   const [listnersSet, setListnersSet] = useState(false);
+  const [agentConfig, setAgentConfig] = useState<InitConfig>();
   const [basicMessageListner, setBasicMessageListner] =
     useState<MessageRecievedCallback>();
   // var basicMessageListner: MessageRecievedCallback;
@@ -280,7 +228,36 @@ const AgentProvider = ({children}) => {
       return 'Agent already running!';
     }
 
-    return await initAgent(setAgentState, getSettings());
+    let _agentConfig: InitConfig;
+    let _appSettings = getSettings();
+    if (!agentConfig) {
+      _agentConfig = getWalletConfig();
+      if (_appSettings.walletLabel) {
+        _agentConfig = {
+          ..._agentConfig,
+          label: _appSettings.walletLabel,
+        };
+      }
+
+      if (
+        !_appSettings.walletRotateKeys &&
+        _appSettings.walletID &&
+        _appSettings.walletKey
+      ) {
+        _agentConfig = {
+          ..._agentConfig,
+          walletConfig: {
+            id: _appSettings.walletID,
+            key: _appSettings.walletKey,
+          },
+        };
+      }
+      setAgentConfig(_agentConfig);
+      console.log(`Agent config final:`, JSON.stringify(_agentConfig));
+    } else {
+      _agentConfig = agentConfig;
+    }
+    return await initAgent(setAgentState, _agentConfig);
   };
 
   const isRedirecton = (url: string): boolean => {
@@ -420,6 +397,28 @@ const AgentProvider = ({children}) => {
 
     // basicMessageListner = callback;
     console.log('Basic message listenr SETTTTT');
+  };
+
+  const changeWalletKey = async (
+    oldKey: string,
+    newKey: string,
+  ): Promise<string | undefined> => {
+    let agent = agentState.agent;
+
+    if (!agent) {
+      return 'Agent not initialized';
+    }
+
+    try {
+      if (agent.isInitialized) {
+        console.log('Wallet is running, shutting down');
+        await agent.shutdown();
+        console.log('Wallet closed');
+      }
+    } catch (e) {
+      console.log('Exception[440] changinf wallet key:', e);
+      return `${e}`;
+    }
   };
 
   /**   EVENT HANDLERS **/

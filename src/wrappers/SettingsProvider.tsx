@@ -41,6 +41,7 @@ const SettingsProvider = ({children}) => {
           console.log(
             `Wallet label not set, setting default name:${appSettings.walletLabel}`,
           );
+          setValue(KEY_STORAGE_WALLETLABEL, appSettings.walletLabel);
         }
       })
       .catch(error => {
@@ -66,6 +67,7 @@ const SettingsProvider = ({children}) => {
           console.log(
             `Wallet id not set, setting new id:${appSettings.walletID}`,
           );
+          setValue(KEY_STORAGE_WALLETID, appSettings.walletID);
         }
       })
       .catch(error => {
@@ -84,6 +86,7 @@ const SettingsProvider = ({children}) => {
           console.log(
             `Wallet key not set, setting new key:${appSettings.walletKey}`,
           );
+          setValue(KEY_STORAGE_WALLETKEY, appSettings.walletKey);
         }
       })
       .catch(error => {

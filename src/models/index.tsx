@@ -30,6 +30,10 @@ export type NewConnectionRecord = {
 export type AgentContextCommands = {
   startAgent?: () => string;
   getAgent: Agent;
+  changeWalletKey: (
+    oldKey: string,
+    newKey: string,
+  ) => Promise<string | undefined>;
   processInvitationUrl?: (code: string) => void;
   processMessage?: (code: string) => void;
   createConnection?: () => Promise<NewConnectionRecord>;

@@ -36,6 +36,13 @@ const SettingsPage: React.FC = () => {
   }, []);
 
   const setAutoAcceptConnections = (val: boolean) => {
+    if (val == null) {
+      //set value in settings
+      let settings = getSettings();
+      settings.agentAutoAcceptConnections = true;
+      setSettings(settings);
+      return;
+    }
     //Set value in storage
     let stringVal = val ? '1' : '0';
     setValue(KEY_STORAGE_ISAUTOACCEPTCONN, stringVal);
@@ -101,6 +108,8 @@ const SettingsPage: React.FC = () => {
     settings.walletKey = walletKey;
     setSettings(settings);
   }
+
+  function reKey(newKey) {}
 
   return (
     <View style={styles.container}>
