@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
-import {View, Alert} from 'react-native';
+import {Alert} from 'react-native';
 import {parseUrl} from 'query-string';
 
 import RNFS from 'react-native-fs';
@@ -15,7 +15,7 @@ import {
   ConsoleLogger,
   CredentialEventTypes,
   CredentialPreviewAttribute,
-  CredentialRecord,
+  CredentialExchangeRecord,
   CredentialState,
   CredentialStateChangedEvent,
   HttpOutboundTransport,
@@ -28,6 +28,7 @@ import {
   ProofStateChangedEvent,
   ConnectionState,
   BasicMessageStateChangedEvent,
+  DidExchangeState,
 } from '@aries-framework/core';
 
 import {agentDependencies} from '@aries-framework/react-native';
@@ -36,13 +37,10 @@ import axios from 'axios';
 import {
   AgentEventTypes,
   AgentMessageProcessedEvent,
-  AgentMessageReceivedEvent,
 } from '@aries-framework/core/build/agent/Events';
-import {Dts_Genesis, Vonx_Greenlight_Genesis} from '../Assets/Dts_Genesis';
 import {
   AgentContextCommands,
   AgentStateType,
-  ConnectionsStateType,
   NewConnectionRecord,
 } from '../models';
 
@@ -138,7 +136,8 @@ const getAllConnections = async (agent: Agent) => {
 
 //Get all credentails
 const getAllCredentials = async (agent: Agent) => {
-  const credentials: CredentialRecord[] = await agent.credentials.getAll();
+  const credentials: CredentialExchangeRecord[] =
+    await agent.credentials.getAll();
 
   if (credentials?.length <= 0) {
     Alert.alert('No credentails found');
@@ -377,12 +376,9 @@ const AgentProvider = ({children}) => {
     //     autoAcceptConnection: autoAcceptConnections,
     //   },
     // );
-    const connectionRecord = await agent.connections.receiveInvitationFromUrl(
-      code,
-      {
-        autoAcceptConnection: getSettings().agentAutoAcceptConnections,
-      },
-    );
+    const connectionRecord = await agent.oob.receiveInvitationFromUrl(code, {
+      autoAcceptConnection: getSettings().agentAutoAcceptConnections,
+    });
     console.log(`Recieved invitation connection record:${connectionRecord}`);
   };
 
@@ -469,7 +465,9 @@ const AgentProvider = ({children}) => {
     }
 
     //Sending ping trust to complete connection
-    if (event.payload.connectionRecord.state === ConnectionState.Responded) {
+    if (
+      event.payload.connectionRecord.state === DidExchangeState.ResponseSent
+    ) {
       console.log(
         '############################################=> Accept response',
       );
@@ -478,7 +476,7 @@ const AgentProvider = ({children}) => {
       );
     }
 
-    if (event.payload.connectionRecord.state === ConnectionState.Complete) {
+    if (event.payload.connectionRecord.state === DidExchangeState.Completed) {
       Alert.alert(
         `New connection with:${event.payload.connectionRecord.theirLabel} established`,
       );

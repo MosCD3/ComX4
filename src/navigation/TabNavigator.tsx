@@ -1,10 +1,7 @@
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import StartUpPage from '../screens/StartUpPage';
-import SettingsPage from '../screens/SettingsPage';
 import Icon from 'react-native-vector-icons/AntDesign';
 import MainScreenStack from './MainScreenStack';
-import SettingsScreen from '../screens/SettingsScreen';
 import SettingsScreenStack from './SettingsTabStack';
 
 const Tab = createBottomTabNavigator();

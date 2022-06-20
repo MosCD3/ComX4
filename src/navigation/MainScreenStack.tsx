@@ -3,7 +3,6 @@ import React from 'react';
 import StartUpPage from '../screens/StartUpPage';
 import ConnectionsInvitePage from '../screens/ConnectionsInvitePage';
 import ConnectionDetailsPage from '../screens/ConnectionDetailsPage';
-import {ConnectionRecord} from '@aries-framework/core';
 import MessagesPage from '../screens/MessagesPage';
 
 export type MainPageStackParams = {

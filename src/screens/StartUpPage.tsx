@@ -1,11 +1,11 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext} from 'react';
 import {ModalContext} from '../wrappers/AppWrapper';
 import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import QRCodeReader from '../popups/QRCodeReader';
-import {AgentContext, getAgent, useAgent} from '../wrappers/AgentProvider';
+import {getAgent, useAgent} from '../wrappers/AgentProvider';
 import GenericList from '../components/list/GenericList';
 import {ListItemType} from '../models';
-import {CredentialRecord} from '@aries-framework/core';
+import {CredentialExchangeRecord} from '@aries-framework/core';
 import {parseSchema} from '../Helpers';
 import InputTextArea from '../popups/InputTextArea';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -17,10 +17,9 @@ interface Props {
   route: RouteProp<MainPageStackParams, 'Main'>;
 }
 
-const StartUpPage: React.FC<Props> = ({navigation, route}) => {
+const StartUpPage: React.FC<Props> = ({navigation}) => {
   const {setModal} = useContext(ModalContext);
-  const {startAgent, processInvitationUrl, processMessage, getConnection} =
-    useAgent();
+  const {startAgent, processInvitationUrl, processMessage} = useAgent();
   const {agent} = getAgent();
 
   const dismissModal = () => {
@@ -94,7 +93,8 @@ const StartUpPage: React.FC<Props> = ({navigation, route}) => {
 
   const showAllCredentails = async () => {
     if (agent) {
-      let credentials: CredentialRecord[] = await agent.credentials?.getAll();
+      let credentials: CredentialExchangeRecord[] =
+        await agent.credentials?.getAll();
       if (credentials) {
         // let list: ListItemType[] = connections.map(c => {id: "", title:''});
         const newdata: ListItemType[] = credentials.map(x => {
