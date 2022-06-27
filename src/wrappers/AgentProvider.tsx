@@ -429,8 +429,8 @@ const AgentProvider = ({children}) => {
     //No need to bother if auto accepting incoming connections
     //Connection event for: 599f6d47-3038-4425-8214-4e2537f1565b, previous state -> responded new state: complete
     if (
-      event.payload.previousState === ConnectionState.Responded &&
-      event.payload.connectionRecord.state === ConnectionState.Complete
+      event.payload.previousState === DidExchangeState.ResponseReceived &&
+      event.payload.connectionRecord.state === DidExchangeState.Completed
     ) {
       Alert.alert(
         `Connection with ${event.payload.connectionRecord.theirLabel} completed`,
@@ -443,13 +443,16 @@ const AgentProvider = ({children}) => {
 
     //accepting connection invitation by sending request
     //TODO: add logic to prevent displaying accept promot for connections created by ME
-    if (event.payload.connectionRecord.state === ConnectionState.Invited) {
+    if (
+      event.payload.connectionRecord.state ===
+      DidExchangeState.InvitationReceived
+    ) {
       const message = `Accept connection with:${event.payload.connectionRecord.theirLabel}?`;
       Alert.alert('Attention!', message, [
         {
           text: 'Accept',
           onPress: () => {
-            agentState.agent?.connections.acceptInvitation(
+            agentState.agent?.oob.acceptInvitation(
               event.payload.connectionRecord.id,
             );
           },
