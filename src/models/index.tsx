@@ -1,9 +1,4 @@
-import {
-  Agent,
-  ConnectionInvitationMessage,
-  ConnectionRecord,
-  ConnectionRecordProps,
-} from '@aries-framework/core';
+import {Agent, ConnectionRecord, OutOfBandRecord} from '@aries-framework/core';
 import AppSettings from './AppSettings';
 export type ListItemType = {
   id: string;
@@ -23,7 +18,7 @@ export type AgentStateType = {
 };
 
 export type NewConnectionRecord = {
-  connection: ConnectionRecord;
+  connection: OutOfBandRecord;
   invitationUrl: string;
 };
 
@@ -34,17 +29,17 @@ export type AgentContextCommands = {
     oldKey: string,
     newKey: string,
   ) => Promise<string | undefined>;
-  processInvitationUrl?: (code: string) => void;
-  processMessage?: (code: string) => void;
-  createConnection?: () => Promise<NewConnectionRecord>;
-  deleteConnection?: (connectionId: string) => boolean;
-  getConnection?: (id: string) => Promise<ConnectionRecord> | undefined;
-  sendBasicMessage?: (toID: string, message: string) => void;
-  subscribeToBasicMessages?: (
+  processInvitationUrl: (code: string) => Promise<void>;
+  processMessage: (code: string) => void;
+  createConnection: () => Promise<NewConnectionRecord | undefined>;
+  deleteConnection: (connectionId: string) => Promise<boolean | undefined>;
+  getConnection: (id: string) => Promise<ConnectionRecord | undefined>;
+  sendBasicMessage: (toID: string, message: string) => void;
+  subscribeToBasicMessages: (
     fromId: string,
     callback: (id: string, message: string) => void,
   ) => void;
-  unsubscribeToBasicMessages?: () => void;
+  unsubscribeToBasicMessages: () => void;
 };
 
 export type StorageContextType = {

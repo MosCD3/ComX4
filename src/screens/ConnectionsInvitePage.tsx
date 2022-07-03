@@ -6,7 +6,7 @@ import {RouteProp} from '@react-navigation/native';
 import {useAgent} from '../wrappers/AgentProvider';
 import QRCode from 'react-native-qrcode-svg';
 import {Button, Card} from '../components/common';
-import {ConnectionRecord} from '@aries-framework/core';
+import {OutOfBandRecord} from '@aries-framework/core';
 
 interface Props {
   navigation: StackNavigationProp<MainPageStackParams, 'Connection Invite'>;
@@ -15,7 +15,7 @@ interface Props {
 const ConnectionsInvitePage: React.FC<Props> = ({route, navigation}) => {
   const {createConnection, deleteConnection} = useAgent();
   const [inviteUrl, setInviteUrl] = useState('--');
-  const [newConnection, setNewConnection] = useState<ConnectionRecord>();
+  const [newConnection, setNewConnection] = useState<OutOfBandRecord>();
 
   const createConnectionInvite = async () => {
     if (createConnection) {
@@ -24,7 +24,6 @@ const ConnectionsInvitePage: React.FC<Props> = ({route, navigation}) => {
         Alert.alert('Error[23] Cannot create connection!!');
         return;
       }
-      console.log(`==>Connection Record:${JSON.stringify(_connection)}`);
       setInviteUrl(_connection.invitationUrl);
       setNewConnection(_connection.connection);
     } else {

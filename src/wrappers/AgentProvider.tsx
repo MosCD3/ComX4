@@ -29,6 +29,7 @@ import {
   ConnectionState,
   BasicMessageStateChangedEvent,
   DidExchangeState,
+  OutOfBandRecord,
 } from '@aries-framework/core';
 
 import {agentDependencies} from '@aries-framework/react-native';
@@ -259,106 +260,133 @@ const AgentProvider = ({children}) => {
     return await initAgent(setAgentState, _agentConfig);
   };
 
-  const isRedirecton = (url: string): boolean => {
-    const queryParams = parseUrl(url).query;
-    return !(queryParams['c_i'] || queryParams['d_m']);
-  };
-
   // ####### Provider Hooks Functions ###############
-  const createConnection: Promise<NewConnectionRecord> = async () => {
+  const createConnection = async (): Promise<
+    NewConnectionRecord | undefined
+  > => {
     let agent = agentState.agent;
 
     if (!agent) {
-      Alert.alert('Agent not initialized');
-      return null;
+      throw new Error('Agent not initialized');
     }
+    try {
+      const {outOfBandRecord, invitation} =
+        await agent.oob.createLegacyInvitation({
+          autoAcceptConnection: true,
+        });
+      console.log(`>> An OOB Connection Created, ID>>: ${outOfBandRecord.id}`);
+      console.log(`>> OOB Invitation, DUMP>>: ${JSON.stringify(invitation)}`);
+      console.log(
+        `>> OOB Connection Record, DUMP>>: ${JSON.stringify(outOfBandRecord)}`,
+      );
+      console.log(
+        `>> Creating connection invite, Endpoint>>: ${MediatorEndpoint}`,
+      );
 
-    const {invitation, connectionRecord} =
-      await agent.connections.createConnection();
-    console.log(`>> Connection Created, ID>>: ${connectionRecord.id}`);
-    console.log(`>> Invitation, DUMP>>: ${JSON.stringify(invitation)}`);
-    console.log(
-      `>> Connection Record, DUMP>>: ${JSON.stringify(connectionRecord)}`,
-    );
-    console.log(
-      `>> Creating connection invite, Endpoint>>: ${MediatorEndpoint}`,
-    );
+      const invite = invitation.toUrl({domain: MediatorEndpoint});
 
-    const invite = invitation.toUrl({domain: MediatorEndpoint});
-
-    console.log(`>> Created invite>>: ${invite}`);
-    return {invitationUrl: invite, connection: connectionRecord};
+      console.log(`>> Created invite>>: ${invite}`);
+      const ncc: NewConnectionRecord = {
+        invitationUrl: invite,
+        connection: outOfBandRecord,
+      };
+      return ncc;
+    } catch (error) {
+      throw new Error(`Error[299] ${error}`);
+    }
   };
 
-  const deleteConnection: Promise<boolean> = async (connectionId: string) => {
+  const deleteConnection = async (
+    connectionId: string,
+  ): Promise<boolean | undefined> => {
     let agent = agentState.agent;
 
     if (!agent) {
-      Alert.alert('Agent not initialized');
-      return null;
+      throw new Error('Agent not initialized');
     }
 
     try {
       await agent.connections.deleteById(connectionId);
       return true;
-    } catch (e) {
-      console.log(`Exception deleting connection:${e}`);
+    } catch (error) {
+      throw new Error(`Exception deleting connection:${error}`);
     }
-    return false;
   };
 
-  const getConnection = async (id: string) => {
+  const getConnection = async (
+    id: string,
+  ): Promise<ConnectionRecord | undefined> => {
     let agent = agentState.agent;
 
     if (!agent) {
-      Alert.alert('Agent not initialized');
-      return null;
+      throw new Error('Agent not initialized');
     }
 
-    return agent.connections.getById(id);
+    try {
+      return agent.connections.getById(id);
+    } catch (error) {
+      throw new Error(`Error[335]:${error}`);
+    }
   };
 
-  const processInvitationUrlFunc = async (code: string) => {
+  const processInvitationUrlFunc = async (code: string): Promise<void> => {
     let agent = agentState.agent;
 
     if (!agent) {
-      Alert.alert('Agent not initialized');
-      return;
+      throw new Error('Agent not initialized');
     }
 
-    if (isRedirecton(code)) {
-      console.log(`Processing connectionless invitation message:${code}`);
+    try {
+      console.log('Decoding connection Invitation from URL:', code);
+      const decodedInvitation = await ConnectionInvitationMessage.fromUrl(code);
 
-      const res = await fetch(code, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
-      const message = await res.json();
-      console.log(`Json data to process:${message}`);
-      await agent.receiveMessage(message);
-      return;
+      console.log(
+        'New OOB Invitation Dump:',
+        JSON.stringify(decodedInvitation),
+      );
+
+      const acceptInv = async () => {
+        const {outOfBandRecord, connectionRecord} =
+          await agent!.oob.receiveInvitationFromUrl(code, {
+            reuseConnection: true,
+          });
+        console.log(
+          `Accepted invitation connection record dump :${JSON.stringify(
+            connectionRecord,
+          )}`,
+        );
+        console.log(
+          `Accepted  OOB invitation connection record dump:${JSON.stringify(
+            outOfBandRecord,
+          )}`,
+        );
+      };
+
+      if (getSettings().agentAutoAcceptConnections) {
+        await acceptInv();
+      } else {
+        const message = `Accept connection with:${decodedInvitation.label}?`;
+        Alert.alert('Attention!', message, [
+          {
+            text: 'Accept',
+            onPress: async () => {
+              await acceptInv();
+            },
+          },
+          {
+            text: 'Reject',
+            onPress: () => {
+              console.log('User rejected');
+            },
+          },
+        ]);
+      }
+    } catch (error) {
+      throw new Error(`Error[335]:${error}`);
     }
-
-    console.log('Decoding connection Invitation from URL:', code);
-    const decodedInvitation = await ConnectionInvitationMessage.fromUrl(code);
-
-    console.log('New Invitation:', decodedInvitation);
-    //One way to do it
-    // const connectionRecord = await agent.connections.receiveInvitation(
-    //   decodedInvitation,
-    //   {
-    //     autoAcceptConnection: autoAcceptConnections,
-    //   },
-    // );
-    const connectionRecord = await agent.oob.receiveInvitationFromUrl(code, {
-      autoAcceptConnection: getSettings().agentAutoAcceptConnections,
-    });
-    console.log(`Recieved invitation connection record:${connectionRecord}`);
   };
 
+  //TODO: route through OOB module
   const processManualMessage = async (message: string) => {
     console.log(`called agent to process:${message}`);
     if (!agentState?.agent) {
@@ -421,6 +449,13 @@ const AgentProvider = ({children}) => {
   /**********************/
   /**  CONNECTION EVENTS **/
   const handleConnectionStateChange = (event: ConnectionStateChangedEvent) => {
+    let agent = agentState.agent;
+
+    if (!agent) {
+      Alert.alert('ERR[430]: Agent not initialized');
+      return;
+    }
+
     console.log(
       `>> Connection event for: ${event.payload.connectionRecord.id}, previous state -> ${event.payload.previousState} new state: ${event.payload.connectionRecord.state}`,
     );
@@ -436,46 +471,6 @@ const AgentProvider = ({children}) => {
         `Connection with ${event.payload.connectionRecord.theirLabel} completed`,
       );
       return;
-    }
-    if (getSettings().agentAutoAcceptConnections) {
-      return;
-    }
-
-    //accepting connection invitation by sending request
-    //TODO: add logic to prevent displaying accept promot for connections created by ME
-    if (
-      event.payload.connectionRecord.state ===
-      DidExchangeState.InvitationReceived
-    ) {
-      const message = `Accept connection with:${event.payload.connectionRecord.theirLabel}?`;
-      Alert.alert('Attention!', message, [
-        {
-          text: 'Accept',
-          onPress: () => {
-            agentState.agent?.oob.acceptInvitation(
-              event.payload.connectionRecord.id,
-            );
-          },
-        },
-        {
-          text: 'Reject',
-          onPress: () => {
-            console.log('User rejected');
-          },
-        },
-      ]);
-    }
-
-    //Sending ping trust to complete connection
-    if (
-      event.payload.connectionRecord.state === DidExchangeState.ResponseSent
-    ) {
-      console.log(
-        '############################################=> Accept response',
-      );
-      agentState.agent?.connections.acceptResponse(
-        event.payload.connectionRecord.id,
-      );
     }
 
     if (event.payload.connectionRecord.state === DidExchangeState.Completed) {
