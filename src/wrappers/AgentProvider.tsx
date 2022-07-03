@@ -30,6 +30,7 @@ import {
   BasicMessageStateChangedEvent,
   DidExchangeState,
   OutOfBandRecord,
+  CredentialPreviewAttributeOptions,
 } from '@aries-framework/core';
 
 import {agentDependencies} from '@aries-framework/react-native';
@@ -513,6 +514,10 @@ const AgentProvider = ({children}) => {
   const handleCredentialStateChange = async (
     event: CredentialStateChangedEvent,
   ) => {
+    if (!agentState.agent) {
+      console.log('Error[517] Agent undefined');
+      process.exit(0);
+    }
     console.log(
       `>> Credential state changed: ${event.payload.credentialRecord.id}, previous state -> ${event.payload.previousState} new state: ${event.payload.credentialRecord.state}`,
     );
@@ -520,55 +525,58 @@ const AgentProvider = ({children}) => {
     console.log(`>===========================================>`);
     console.log(`>> Credential OBJECT DUMP>>: ${JSON.stringify(event)}`);
     console.log(`>===========================================>`);
-    if (
-      event.payload.credentialRecord.state === CredentialState.OfferReceived
-    ) {
-      console.log(`>> Recieved offer, should display credentail to user`);
-      console.log(`>> AUTO ACCEPTING OFFER`);
 
-      //TODO: Move some where else
-      const previewAttributes: CredentialPreviewAttribute[] =
-        event.payload.credentialRecord.offerMessage?.credentialPreview
-          .attributes || [];
-      var counter = 0;
-      var message = '>> Offer Recieved <<\n';
-      for (const credAttribute of previewAttributes) {
-        //Just not to bloat the alert with all values, limit to 5 only for demo purpose
-        counter += 1;
-        if (counter < 5) {
-          message += `${credAttribute.name}: ${credAttribute.value}\n`;
+    const acceptOffer = async () => {
+      await agentState.agent?.credentials.acceptOffer({
+        credentialRecordId: event.payload.credentialRecord.id,
+      });
+    };
+    switch (event.payload.credentialRecord.state) {
+      case CredentialState.OfferReceived:
+        console.log('received a credential');
+        // grab attributes
+        const formatData = await agentState.agent.credentials.getFormatData(
+          event.payload.credentialRecord.id,
+        );
+        const attributes = formatData.offerAttributes;
+        if (!attributes) {
+          Alert.alert('Offer received with no attributes!');
+          return;
+        }
+        var counter = 0;
+        var message = '>> Offer Recieved <<\n';
+        for (const credAttribute of attributes) {
+          //Just not to bloat the alert with all values, limit to 5 only for demo purpose
+          counter += 1;
+          if (counter < 5) {
+            message += `${credAttribute.name}: ${credAttribute.value}\n`;
+          }
+
+          // attributes[previewAttributes[index].name] =
+          //   previewAttributes[index].value;
         }
 
-        // attributes[previewAttributes[index].name] =
-        //   previewAttributes[index].value;
-      }
-
-      Alert.alert('Attention!', message, [
-        {
-          text: 'Accept',
-          onPress: () => {
-            agentState.agent?.credentials.acceptOffer(
-              event.payload.credentialRecord.id,
-            );
+        Alert.alert('Attention!', message, [
+          {
+            text: 'Accept',
+            onPress: async () => {
+              await acceptOffer();
+            },
           },
-        },
-        {
-          text: 'Reject',
-          onPress: () => {
-            console.log('User rejected offer');
+          {
+            text: 'Reject',
+            onPress: () => {
+              console.log('User rejected offer');
+            },
           },
-        },
-      ]);
-    } else if (event.payload.credentialRecord.state === CredentialState.Done) {
-      //Currently not being triggered
-      console.log('Donae saving credentials');
-      Alert.alert('Credentail Saved');
-    } else if (event.payload.credentialRecord.state === 'credential-received') {
-      //No need for that step
-      console.log('>> Recieved Credentail');
-      // await agent.credentials.acceptCredential(event.payload.credentialRecord.id); //no need for that if you use
-      // console.log('ALL DONE - CREDENTAIL ACCEPTED');
-      // Alert.alert('ALL DONE - CREDENTAIL ACCEPTED');
+        ]);
+        break;
+      case CredentialState.Done:
+        console.log(
+          `Credential for credential id ${event.payload.credentialRecord.id} is accepted`,
+        );
+        Alert.alert('Credentail Saved');
+        break;
     }
   };
 
