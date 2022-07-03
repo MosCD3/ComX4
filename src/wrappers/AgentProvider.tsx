@@ -102,51 +102,6 @@ const processCustomMessage = async (agent: Agent, message: string) => {
   await agent.receiveMessage(message);
 };
 
-/*  INIT FUNCTIONS */
-//Get all connections
-const getAllConnections = async (agent: Agent) => {
-  const connections: ConnectionRecord[] = await agent.connections.getAll();
-  console.log(`[] All Connections ${JSON.stringify(connections)}`);
-};
-
-//Get all credentails
-const getAllCredentials = async (agent: Agent) => {
-  const credentials: CredentialExchangeRecord[] =
-    await agent.credentials.getAll();
-
-  if (credentials?.length <= 0) {
-    Alert.alert('No credentails found');
-    return false;
-  }
-
-  var message = `>> Total Credentaols:${credentials?.length}<<\n`;
-  var message = `>> Showing last credential<<\n`;
-
-  //Will take only first credential
-  var lastCredentailRecord = credentials[credentials.length - 1];
-
-  //TODO: Move some where else
-  const previewAttributes: CredentialPreviewAttribute[] =
-    lastCredentailRecord.offerMessage?.credentialPreview.attributes || [];
-
-  var counter = 0;
-
-  for (const credAttribute of previewAttributes) {
-    //Just not to bloat the alert with all values, limit to 5 only for demo purpose
-    counter += 1;
-    if (counter < 5) {
-      message += `${credAttribute.name}: ${credAttribute.value}\n`;
-    }
-
-    // attributes[previewAttributes[index].name] =
-    //   previewAttributes[index].value;
-  }
-
-  Alert.alert(message);
-
-  console.log(`[] All Credentials ${JSON.stringify(credentials)}`);
-};
-
 /*
 Main Function Init Agent
 */
@@ -538,6 +493,7 @@ const AgentProvider = ({children}) => {
         const formatData = await agentState.agent.credentials.getFormatData(
           event.payload.credentialRecord.id,
         );
+
         const attributes = formatData.offerAttributes;
         if (!attributes) {
           Alert.alert('Offer received with no attributes!');
@@ -548,7 +504,7 @@ const AgentProvider = ({children}) => {
         for (const credAttribute of attributes) {
           //Just not to bloat the alert with all values, limit to 5 only for demo purpose
           counter += 1;
-          if (counter < 5) {
+          if (counter < 10) {
             message += `${credAttribute.name}: ${credAttribute.value}\n`;
           }
 
@@ -638,6 +594,10 @@ const AgentProvider = ({children}) => {
 
       console.log(`======== Proof Object Dump ==============`);
       console.log(JSON.stringify(proofRequest));
+
+      for (const reqAttribute of proofRequest.requestedAttributes) {
+        message += `${reqAttribute[1].name}\n`;
+      }
 
       Object.values(proofRequest.requestedAttributes).forEach(attr => {
         message += `${attr.name}\n`;
